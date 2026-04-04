@@ -8,6 +8,8 @@ import logging
 from bleak import BleakError
 from bleak_retry_connector import (
     BleakClientWithServiceCache,
+    BleakConnectionError,
+    BleakNotFoundError,
     establish_connection,
 )
 
@@ -16,10 +18,10 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-MAX_ATTEMPTS = 3
-CONNECT_TIMEOUT = 10.0
-INPROGRESS_RETRY_DELAY = 1.0
-INPROGRESS_MAX_RETRIES = 5
+MAX_ATTEMPTS = 6
+CONNECT_TIMEOUT = 30.0
+RETRY_DELAY = 2.0
+MAX_RETRIES = 5
 
 
 async def _get_client(
@@ -27,15 +29,15 @@ async def _get_client(
 ) -> BleakClientWithServiceCache | None:
     """BLE 디바이스를 찾아 연결된 BleakClient 반환.
 
-    InProgress 에러 시 짧은 대기 후 재시도.
+    InProgress / 연결 실패 시 대기 후 재시도.
     """
     ble_device = async_ble_device_from_address(hass, mac, connectable=True)
     if ble_device is None:
         _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
         return None
 
-    last_error = None
-    for attempt in range(INPROGRESS_MAX_RETRIES):
+    last_error: Exception | None = None
+    for attempt in range(MAX_RETRIES):
         try:
             return await establish_connection(
                 BleakClientWithServiceCache,
@@ -44,33 +46,30 @@ async def _get_client(
                 max_attempts=MAX_ATTEMPTS,
                 timeout=CONNECT_TIMEOUT,
             )
-        except BleakError as err:
+        except (BleakNotFoundError, BleakConnectionError, BleakError) as err:
             last_error = err
-            if "InProgress" in str(err):
-                _LOGGER.debug(
-                    "BLE InProgress 대기 중 (%d/%d): %s",
-                    attempt + 1,
-                    INPROGRESS_MAX_RETRIES,
-                    mac,
-                )
-                await asyncio.sleep(INPROGRESS_RETRY_DELAY)
-                # 디바이스 정보 갱신
-                ble_device = async_ble_device_from_address(
-                    hass, mac, connectable=True
-                )
-                if ble_device is None:
-                    _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
-                    return None
-                continue
-            _LOGGER.exception("BLE 연결 실패: %s", mac)
-            return None
+            _LOGGER.debug(
+                "BLE 연결 실패 (%d/%d): %s — %s",
+                attempt + 1,
+                MAX_RETRIES,
+                mac,
+                err,
+            )
+            await asyncio.sleep(RETRY_DELAY)
+            # 디바이스 정보 갱신
+            ble_device = async_ble_device_from_address(
+                hass, mac, connectable=True
+            )
+            if ble_device is None:
+                _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
+                return None
         except Exception:
-            _LOGGER.exception("BLE 연결 실패: %s", mac)
+            _LOGGER.exception("BLE 연결 실패 (예상 외 에러): %s", mac)
             return None
 
     _LOGGER.error(
-        "BLE InProgress 에러가 지속됨 (%d회 재시도 후 포기): %s - %s",
-        INPROGRESS_MAX_RETRIES,
+        "BLE 연결 실패 (%d회 재시도 후 포기): %s — %s",
+        MAX_RETRIES,
         mac,
         last_error,
     )

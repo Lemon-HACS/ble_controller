@@ -9,8 +9,6 @@ import time
 from bleak import BleakError
 from bleak_retry_connector import (
     BleakClientWithServiceCache,
-    BleakConnectionError,
-    BleakNotFoundError,
     establish_connection,
 )
 
@@ -19,10 +17,12 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-MAX_ATTEMPTS = 6
-CONNECT_TIMEOUT = 30.0
-RETRY_DELAY = 2.0
-MAX_RETRIES = 5
+# establish_connection 내부 재시도 횟수 (낮게 유지하여 폭주 방지)
+MAX_ATTEMPTS = 2
+CONNECT_TIMEOUT = 15.0
+# 외부 재시도 (establish_connection 전체를 다시 호출)
+RETRY_DELAY = 3.0
+MAX_RETRIES = 4
 
 
 async def _get_client(
@@ -47,6 +47,10 @@ async def _get_client(
         getattr(ble_device, "rssi", "?"),
     )
 
+    def _ble_device_callback() -> BleakClientWithServiceCache | None:
+        """establish_connection 내부에서 매 재시도마다 최신 디바이스 참조 제공."""
+        return async_ble_device_from_address(hass, mac, connectable=True)
+
     last_error: Exception | None = None
     for attempt in range(MAX_RETRIES):
         t_attempt = time.monotonic()
@@ -65,6 +69,7 @@ async def _get_client(
                 mac,
                 max_attempts=MAX_ATTEMPTS,
                 timeout=CONNECT_TIMEOUT,
+                ble_device_callback=_ble_device_callback,
             )
             elapsed = time.monotonic() - t_start
             _LOGGER.info(
@@ -74,7 +79,7 @@ async def _get_client(
                 elapsed,
             )
             return client
-        except (BleakNotFoundError, BleakConnectionError, BleakError) as err:
+        except Exception as err:
             last_error = err
             attempt_elapsed = time.monotonic() - t_attempt
             _LOGGER.warning(
@@ -86,19 +91,17 @@ async def _get_client(
                 type(err).__name__,
                 err,
             )
-            await asyncio.sleep(RETRY_DELAY)
-            # 디바이스 정보 갱신
-            ble_device = async_ble_device_from_address(
-                hass, mac, connectable=True
-            )
-            if ble_device is None:
-                _LOGGER.warning(
-                    "[BLE %s] 재시도 중 디바이스 사라짐", mac
+            if attempt + 1 < MAX_RETRIES:
+                await asyncio.sleep(RETRY_DELAY)
+                # 디바이스 정보 갱신
+                ble_device = async_ble_device_from_address(
+                    hass, mac, connectable=True
                 )
-                return None
-        except Exception:
-            _LOGGER.exception("[BLE %s] 예상 외 에러", mac)
-            return None
+                if ble_device is None:
+                    _LOGGER.warning(
+                        "[BLE %s] 재시도 중 디바이스 사라짐", mac
+                    )
+                    return None
 
     total_elapsed = time.monotonic() - t_start
     _LOGGER.error(

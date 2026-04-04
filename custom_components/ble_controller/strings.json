@@ -1,0 +1,99 @@
+{
+  "config": {
+    "abort": {
+      "no_devices_found": "주변에 연결 가능한 BLE 디바이스를 찾을 수 없습니다.",
+      "already_configured": "이 디바이스는 이미 설정되어 있습니다."
+    },
+    "error": {
+      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요."
+    },
+    "step": {
+      "user": {
+        "title": "BLE 디바이스 선택",
+        "description": "제어할 BLE 디바이스를 선택하세요.",
+        "data": {
+          "address": "디바이스"
+        }
+      },
+      "type": {
+        "title": "엔티티 타입 선택",
+        "description": "생성할 엔티티 타입을 선택하세요.",
+        "data": {
+          "entity_type": "엔티티 타입"
+        }
+      },
+      "switch": {
+        "title": "스위치 설정",
+        "description": "BLE GATT Service/Characteristic 정보와 ON/OFF 데이터를 입력하세요.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "data_on": "ON 데이터 (hex)",
+          "data_off": "OFF 데이터 (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "button": {
+        "title": "버튼 설정",
+        "description": "BLE GATT Service/Characteristic 정보와 전송할 데이터를 입력하세요.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "data_press": "전송 데이터 (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "select": {
+        "title": "셀렉트 설정",
+        "description": "BLE GATT Service/Characteristic 정보와 옵션 목록을 입력하세요.\n옵션은 '라벨=hex데이터' 형식으로 줄바꿈 구분하여 입력합니다.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "notify": {
+        "title": "Notify 설정 (선택)",
+        "description": "Notify를 통해 디바이스 상태를 확인하려면 아래 항목을 입력하세요. 건너뛰려면 비워두세요.",
+        "data": {
+          "notify_uuid": "Notify Characteristic UUID",
+          "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
+          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요."
+    },
+    "step": {
+      "switch_options": {
+        "title": "스위치 설정 변경",
+        "data": {
+          "data_on": "ON 데이터 (hex)",
+          "data_off": "OFF 데이터 (hex)",
+          "write_with_response": "Write With Response",
+          "notify_uuid": "Notify Characteristic UUID",
+          "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
+          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)"
+        }
+      },
+      "button_options": {
+        "title": "버튼 설정 변경",
+        "data": {
+          "data_press": "전송 데이터 (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "select_options": {
+        "title": "셀렉트 설정 변경",
+        "data": {
+          "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
+          "write_with_response": "Write With Response"
+        }
+      }
+    }
+  }
+}

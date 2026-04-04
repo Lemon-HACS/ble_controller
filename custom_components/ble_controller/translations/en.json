@@ -1,0 +1,99 @@
+{
+  "config": {
+    "abort": {
+      "no_devices_found": "No connectable BLE devices found nearby.",
+      "already_configured": "This device is already configured."
+    },
+    "error": {
+      "invalid_format": "Invalid input format. Please check UUID or hex values."
+    },
+    "step": {
+      "user": {
+        "title": "Select BLE Device",
+        "description": "Select the BLE device you want to control.",
+        "data": {
+          "address": "Device"
+        }
+      },
+      "type": {
+        "title": "Select Entity Type",
+        "description": "Choose the type of entity to create.",
+        "data": {
+          "entity_type": "Entity Type"
+        }
+      },
+      "switch": {
+        "title": "Switch Configuration",
+        "description": "Enter BLE GATT Service/Characteristic info and ON/OFF data.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "data_on": "ON data (hex)",
+          "data_off": "OFF data (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "button": {
+        "title": "Button Configuration",
+        "description": "Enter BLE GATT Service/Characteristic info and command data.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "data_press": "Command data (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "select": {
+        "title": "Select Configuration",
+        "description": "Enter BLE GATT Service/Characteristic info and options.\nFormat: 'label=hexdata', one per line.",
+        "data": {
+          "service_uuid": "Service UUID",
+          "char_uuid": "Write Characteristic UUID",
+          "options": "Options (label=hex, one per line)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "notify": {
+        "title": "Notify Configuration (Optional)",
+        "description": "To verify device state via Notify, fill in the fields below. Leave empty to skip.",
+        "data": {
+          "notify_uuid": "Notify Characteristic UUID",
+          "notify_on_pattern": "ON state response pattern (hex)",
+          "notify_off_pattern": "OFF state response pattern (hex)"
+        }
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "invalid_format": "Invalid input format. Please check UUID or hex values."
+    },
+    "step": {
+      "switch_options": {
+        "title": "Switch Settings",
+        "data": {
+          "data_on": "ON data (hex)",
+          "data_off": "OFF data (hex)",
+          "write_with_response": "Write With Response",
+          "notify_uuid": "Notify Characteristic UUID",
+          "notify_on_pattern": "ON state response pattern (hex)",
+          "notify_off_pattern": "OFF state response pattern (hex)"
+        }
+      },
+      "button_options": {
+        "title": "Button Settings",
+        "data": {
+          "data_press": "Command data (hex)",
+          "write_with_response": "Write With Response"
+        }
+      },
+      "select_options": {
+        "title": "Select Settings",
+        "data": {
+          "options": "Options (label=hex, one per line)",
+          "write_with_response": "Write With Response"
+        }
+      }
+    }
+  }
+}

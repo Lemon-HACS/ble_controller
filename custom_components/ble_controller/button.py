@@ -10,7 +10,7 @@ from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .ble_client import ble_write
+from .ble_client import BLEDeviceManager
 from .const import (
     CONF_CHAR_UUID,
     CONF_DATA_PRESS,
@@ -27,7 +27,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """버튼 엔티티 셋업."""
-    async_add_entities([BLEControllerButton(hass, entry)])
+    manager: BLEDeviceManager = hass.data[DOMAIN][entry.entry_id]["manager"]
+    async_add_entities([BLEControllerButton(entry, manager)])
 
 
 class BLEControllerButton(ButtonEntity):
@@ -35,8 +36,8 @@ class BLEControllerButton(ButtonEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        self.hass = hass
+    def __init__(self, entry: ConfigEntry, manager: BLEDeviceManager) -> None:
+        self._manager = manager
         self._data = entry.data
         self._mac: str = self._data[CONF_ADDRESS]
         self._name: str = self._data.get(CONF_NAME, f"BLE Button {self._mac}")
@@ -56,8 +57,9 @@ class BLEControllerButton(ButtonEntity):
         }
 
     async def async_press(self) -> None:
-        ok = await ble_write(
-            self.hass, self._mac, self._char_uuid, self._data_press,
+        ok = await self._manager.write(
+            self._char_uuid,
+            self._data_press,
             response=self._response,
         )
         if not ok:

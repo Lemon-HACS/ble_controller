@@ -10,7 +10,7 @@ from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .ble_client import ble_write
+from .ble_client import BLEDeviceManager
 from .const import (
     CONF_CHAR_UUID,
     CONF_OPTIONS,
@@ -27,7 +27,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """셀렉트 엔티티 셋업."""
-    async_add_entities([BLEControllerSelect(hass, entry)])
+    manager: BLEDeviceManager = hass.data[DOMAIN][entry.entry_id]["manager"]
+    async_add_entities([BLEControllerSelect(entry, manager)])
 
 
 class BLEControllerSelect(SelectEntity):
@@ -35,8 +36,8 @@ class BLEControllerSelect(SelectEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        self.hass = hass
+    def __init__(self, entry: ConfigEntry, manager: BLEDeviceManager) -> None:
+        self._manager = manager
         self._data = entry.data
         self._mac: str = self._data[CONF_ADDRESS]
         self._name: str = self._data.get(CONF_NAME, f"BLE Select {self._mac}")
@@ -69,8 +70,9 @@ class BLEControllerSelect(SelectEntity):
             _LOGGER.error("알 수 없는 옵션: %s", option)
             return
 
-        ok = await ble_write(
-            self.hass, self._mac, self._char_uuid, data,
+        ok = await self._manager.write(
+            self._char_uuid,
+            data,
             response=self._response,
         )
         if ok:

@@ -1,14 +1,21 @@
-"""BLE GATT 클라이언트 헬퍼."""
+"""BLE GATT 클라이언트 — persistent connection + timed disconnect 패턴.
+
+SwitchBot / LED BLE 통합과 동일한 아키텍처:
+  - 첫 커맨드에서 연결, 일정 시간 미사용 시 자동 해제
+  - asyncio.Lock으로 연결/명령 직렬화
+  - establish_connection + BleakClientWithServiceCache 사용
+"""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 import time
+from typing import Any
 
-from bleak import BleakError
 from bleak_retry_connector import (
     BleakClientWithServiceCache,
+    close_stale_connections_by_address,
     establish_connection,
 )
 
@@ -17,204 +24,219 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
-# establish_connection 내부 재시도 횟수 (낮게 유지하여 폭주 방지)
-MAX_ATTEMPTS = 2
-CONNECT_TIMEOUT = 15.0
-# 외부 재시도 (establish_connection 전체를 다시 호출)
-RETRY_DELAY = 3.0
-MAX_RETRIES = 4
+DISCONNECT_DELAY = 15.0  # 마지막 명령 후 자동 해제까지 대기 시간
+MAX_ATTEMPTS = 3
 
 
-async def _get_client(
-    hass: HomeAssistant, mac: str
-) -> BleakClientWithServiceCache | None:
-    """BLE 디바이스를 찾아 연결된 BleakClient 반환.
+class BLEDeviceManager:
+    """디바이스별 BLE 연결 매니저.
 
-    InProgress / 연결 실패 시 대기 후 재시도.
+    연결을 유지하다가 DISCONNECT_DELAY 동안 미사용 시 자동 해제.
     """
-    t_start = time.monotonic()
-    _LOGGER.info("[BLE %s] 연결 시작", mac)
 
-    ble_device = async_ble_device_from_address(hass, mac, connectable=True)
-    if ble_device is None:
-        _LOGGER.warning("[BLE %s] 디바이스를 찾을 수 없음 (advertising 미감지)", mac)
-        return None
+    def __init__(self, hass: HomeAssistant, mac: str) -> None:
+        self._hass = hass
+        self._mac = mac
+        self._client: BleakClientWithServiceCache | None = None
+        self._connect_lock = asyncio.Lock()
+        self._operation_lock = asyncio.Lock()
+        self._disconnect_timer: asyncio.TimerHandle | None = None
+        self._expected_disconnect = False
 
-    _LOGGER.debug(
-        "[BLE %s] 디바이스 발견: name=%s, rssi=%s",
-        mac,
-        getattr(ble_device, "name", "?"),
-        getattr(ble_device, "rssi", "?"),
-    )
+    def _get_ble_device(self):
+        """최신 BLEDevice 참조 반환."""
+        return async_ble_device_from_address(self._hass, self._mac, connectable=True)
 
-    def _ble_device_callback() -> BleakClientWithServiceCache | None:
-        """establish_connection 내부에서 매 재시도마다 최신 디바이스 참조 제공."""
-        return async_ble_device_from_address(hass, mac, connectable=True)
-
-    last_error: Exception | None = None
-    for attempt in range(MAX_RETRIES):
-        t_attempt = time.monotonic()
-        _LOGGER.info(
-            "[BLE %s] establish_connection 시도 %d/%d (max_attempts=%d, timeout=%.0fs)",
-            mac,
-            attempt + 1,
-            MAX_RETRIES,
-            MAX_ATTEMPTS,
-            CONNECT_TIMEOUT,
-        )
-        try:
-            client = await establish_connection(
-                BleakClientWithServiceCache,
-                ble_device,
-                mac,
-                max_attempts=MAX_ATTEMPTS,
-                timeout=CONNECT_TIMEOUT,
-                ble_device_callback=_ble_device_callback,
-            )
-            elapsed = time.monotonic() - t_start
-            _LOGGER.info(
-                "[BLE %s] 연결 성공 (시도 %d, 총 %.1f초)",
-                mac,
-                attempt + 1,
-                elapsed,
-            )
-            return client
-        except Exception as err:
-            last_error = err
-            attempt_elapsed = time.monotonic() - t_attempt
-            _LOGGER.warning(
-                "[BLE %s] 연결 실패 (%d/%d, %.1f초): %s: %s",
-                mac,
-                attempt + 1,
-                MAX_RETRIES,
-                attempt_elapsed,
-                type(err).__name__,
-                err,
-            )
-            if attempt + 1 < MAX_RETRIES:
-                await asyncio.sleep(RETRY_DELAY)
-                # 디바이스 정보 갱신
-                ble_device = async_ble_device_from_address(
-                    hass, mac, connectable=True
-                )
-                if ble_device is None:
-                    _LOGGER.warning(
-                        "[BLE %s] 재시도 중 디바이스 사라짐", mac
-                    )
-                    return None
-
-    total_elapsed = time.monotonic() - t_start
-    _LOGGER.error(
-        "[BLE %s] 연결 포기 (%d회 재시도, 총 %.1f초): %s",
-        mac,
-        MAX_RETRIES,
-        total_elapsed,
-        last_error,
-    )
-    return None
-
-
-async def _disconnect(
-    client: BleakClientWithServiceCache, mac: str
-) -> None:
-    """안전하게 연결 해제."""
-    try:
-        await client.disconnect()
-    except Exception:
-        _LOGGER.debug("연결 해제 실패 (무시): %s", mac)
-
-
-async def ble_write(
-    hass: HomeAssistant,
-    mac: str,
-    char_uuid: str,
-    data: bytes,
-    response: bool = False,
-) -> bool:
-    """BLE 디바이스에 연결하여 GATT write 후 연결 해제.
-
-    성공 시 True, 실패 시 False 반환.
-    """
-    _LOGGER.info(
-        "[BLE %s] ble_write: char=%s, data=%s, response=%s",
-        mac,
-        char_uuid,
-        data.hex(),
-        response,
-    )
-    client = await _get_client(hass, mac)
-    if client is None:
-        _LOGGER.error("[BLE %s] ble_write: 연결 실패로 중단", mac)
-        return False
-
-    try:
-        await client.write_gatt_char(char_uuid, data, response=response)
-        _LOGGER.info("[BLE %s] ble_write: 성공", mac)
-        return True
-    except Exception:
-        _LOGGER.exception("[BLE %s] GATT write 실패", mac)
-        return False
-    finally:
-        await _disconnect(client, mac)
-
-
-async def ble_write_and_notify(
-    hass: HomeAssistant,
-    mac: str,
-    char_uuid: str,
-    data: bytes,
-    response: bool = False,
-    notify_uuid: str | None = None,
-    notify_on_pattern: bytes | None = None,
-    notify_off_pattern: bytes | None = None,
-    notify_timeout: float = 5.0,
-) -> tuple[bool, bool | None]:
-    """BLE write 후 Notify로 상태 확인.
-
-    Returns:
-        (성공 여부, 감지된 상태) — 상태를 판별할 수 없으면 None.
-    """
-    _LOGGER.info(
-        "[BLE %s] ble_write_and_notify: char=%s, data=%s, notify_uuid=%s",
-        mac,
-        char_uuid,
-        data.hex(),
-        notify_uuid,
-    )
-    client = await _get_client(hass, mac)
-    if client is None:
-        _LOGGER.error("[BLE %s] ble_write_and_notify: 연결 실패로 중단", mac)
-        return False, None
-
-    detected_state: bool | None = None
-
-    try:
-        if notify_uuid and (notify_on_pattern or notify_off_pattern):
-            state_event = asyncio.Event()
-
-            def on_notify(_handle: int, notify_data: bytearray) -> None:
-                nonlocal detected_state
-                raw = bytes(notify_data)
-                if notify_on_pattern and notify_on_pattern in raw:
-                    detected_state = True
-                    state_event.set()
-                elif notify_off_pattern and notify_off_pattern in raw:
-                    detected_state = False
-                    state_event.set()
-
-            await client.start_notify(notify_uuid, on_notify)
-            await client.write_gatt_char(char_uuid, data, response=response)
-            try:
-                await asyncio.wait_for(state_event.wait(), timeout=notify_timeout)
-            except TimeoutError:
-                _LOGGER.debug("Notify 타임아웃: %s (상태 미확인)", mac)
-            await client.stop_notify(notify_uuid)
+    def _on_disconnected(self, _client: Any) -> None:
+        """BlueZ에서 연결이 끊겼을 때 콜백."""
+        if self._expected_disconnect:
+            _LOGGER.debug("[BLE %s] 예상된 연결 해제", self._mac)
         else:
-            await client.write_gatt_char(char_uuid, data, response=response)
+            _LOGGER.warning("[BLE %s] 예기치 않은 연결 끊김", self._mac)
+        self._client = None
+        self._cancel_disconnect_timer()
 
-        return True, detected_state
-    except Exception:
-        _LOGGER.exception("GATT write 실패: %s", mac)
-        return False, None
-    finally:
-        await _disconnect(client, mac)
+    def _cancel_disconnect_timer(self) -> None:
+        if self._disconnect_timer is not None:
+            self._disconnect_timer.cancel()
+            self._disconnect_timer = None
+
+    def _reset_disconnect_timer(self) -> None:
+        self._cancel_disconnect_timer()
+        loop = self._hass.loop
+        self._disconnect_timer = loop.call_later(
+            DISCONNECT_DELAY,
+            lambda: asyncio.ensure_future(self._timed_disconnect()),
+        )
+
+    async def _timed_disconnect(self) -> None:
+        """타이머에 의한 자동 연결 해제."""
+        _LOGGER.debug("[BLE %s] 타이머 만료 — 연결 해제", self._mac)
+        await self._disconnect()
+
+    async def _ensure_connected(self) -> bool:
+        """연결이 없으면 새로 연결. 성공 시 True."""
+        async with self._connect_lock:
+            if self._client is not None and self._client.is_connected:
+                _LOGGER.debug("[BLE %s] 기존 연결 재사용", self._mac)
+                self._reset_disconnect_timer()
+                return True
+
+            self._client = None
+            ble_device = self._get_ble_device()
+            if ble_device is None:
+                _LOGGER.warning("[BLE %s] 디바이스를 찾을 수 없음", self._mac)
+                return False
+
+            _LOGGER.debug(
+                "[BLE %s] 디바이스 발견: name=%s, rssi=%s",
+                self._mac,
+                getattr(ble_device, "name", "?"),
+                getattr(ble_device, "rssi", "?"),
+            )
+
+            t_start = time.monotonic()
+            _LOGGER.info("[BLE %s] 연결 시도 (max_attempts=%d)", self._mac, MAX_ATTEMPTS)
+
+            self._expected_disconnect = False
+            try:
+                self._client = await establish_connection(
+                    BleakClientWithServiceCache,
+                    ble_device,
+                    self._mac,
+                    self._on_disconnected,
+                    max_attempts=MAX_ATTEMPTS,
+                    ble_device_callback=self._get_ble_device,
+                )
+            except Exception as err:
+                elapsed = time.monotonic() - t_start
+                _LOGGER.warning(
+                    "[BLE %s] 연결 실패 (%.1f초): %s: %s",
+                    self._mac,
+                    elapsed,
+                    type(err).__name__,
+                    err,
+                )
+                return False
+
+            elapsed = time.monotonic() - t_start
+            _LOGGER.info("[BLE %s] 연결 성공 (%.1f초)", self._mac, elapsed)
+            self._reset_disconnect_timer()
+            return True
+
+    async def _disconnect(self) -> None:
+        """안전하게 연결 해제."""
+        async with self._connect_lock:
+            self._cancel_disconnect_timer()
+            client = self._client
+            self._client = None
+            if client is None:
+                return
+            self._expected_disconnect = True
+            try:
+                await client.disconnect()
+            except Exception:
+                _LOGGER.debug("[BLE %s] 연결 해제 실패 (무시)", self._mac)
+
+    async def async_shutdown(self) -> None:
+        """통합 언로드 시 정리."""
+        await self._disconnect()
+        try:
+            await close_stale_connections_by_address(self._mac)
+        except Exception:
+            pass
+
+    async def write(
+        self,
+        char_uuid: str,
+        data: bytes,
+        response: bool = False,
+    ) -> bool:
+        """GATT write. 성공 시 True."""
+        _LOGGER.info(
+            "[BLE %s] write: char=%s, data=%s, response=%s",
+            self._mac,
+            char_uuid,
+            data.hex(),
+            response,
+        )
+        async with self._operation_lock:
+            if not await self._ensure_connected():
+                _LOGGER.error("[BLE %s] write: 연결 실패로 중단", self._mac)
+                return False
+            try:
+                await self._client.write_gatt_char(char_uuid, data, response=response)
+                _LOGGER.info("[BLE %s] write: 성공", self._mac)
+                self._reset_disconnect_timer()
+                return True
+            except Exception:
+                _LOGGER.exception("[BLE %s] GATT write 실패", self._mac)
+                await self._disconnect()
+                return False
+
+    async def write_and_notify(
+        self,
+        char_uuid: str,
+        data: bytes,
+        response: bool = False,
+        notify_uuid: str | None = None,
+        notify_on_pattern: bytes | None = None,
+        notify_off_pattern: bytes | None = None,
+        notify_timeout: float = 5.0,
+    ) -> tuple[bool, bool | None]:
+        """GATT write 후 Notify로 상태 확인.
+
+        Returns:
+            (성공 여부, 감지된 상태) — 판별 불가 시 None.
+        """
+        _LOGGER.info(
+            "[BLE %s] write_and_notify: char=%s, data=%s, notify=%s",
+            self._mac,
+            char_uuid,
+            data.hex(),
+            notify_uuid,
+        )
+        async with self._operation_lock:
+            if not await self._ensure_connected():
+                _LOGGER.error("[BLE %s] write_and_notify: 연결 실패로 중단", self._mac)
+                return False, None
+
+            detected_state: bool | None = None
+
+            try:
+                if notify_uuid and (notify_on_pattern or notify_off_pattern):
+                    state_event = asyncio.Event()
+
+                    def on_notify(_handle: int, notify_data: bytearray) -> None:
+                        nonlocal detected_state
+                        raw = bytes(notify_data)
+                        if notify_on_pattern and notify_on_pattern in raw:
+                            detected_state = True
+                            state_event.set()
+                        elif notify_off_pattern and notify_off_pattern in raw:
+                            detected_state = False
+                            state_event.set()
+
+                    await self._client.start_notify(notify_uuid, on_notify)
+                    await self._client.write_gatt_char(
+                        char_uuid, data, response=response
+                    )
+                    try:
+                        await asyncio.wait_for(
+                            state_event.wait(), timeout=notify_timeout
+                        )
+                    except TimeoutError:
+                        _LOGGER.debug("[BLE %s] Notify 타임아웃 (상태 미확인)", self._mac)
+                    await self._client.stop_notify(notify_uuid)
+                else:
+                    await self._client.write_gatt_char(
+                        char_uuid, data, response=response
+                    )
+
+                _LOGGER.info("[BLE %s] write_and_notify: 성공", self._mac)
+                self._reset_disconnect_timer()
+                return True, detected_state
+            except Exception:
+                _LOGGER.exception("[BLE %s] GATT write 실패", self._mac)
+                await self._disconnect()
+                return False, None

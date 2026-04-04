@@ -13,6 +13,38 @@ from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
+# establish_connection 재시도 횟수 및 타임아웃 제한
+MAX_CONNECT_ATTEMPTS = 3
+CONNECT_TIMEOUT = 10.0
+
+
+async def _get_client(hass: HomeAssistant, mac: str) -> BleakClient | None:
+    """BLE 디바이스를 찾아 연결된 BleakClient 반환."""
+    ble_device = async_ble_device_from_address(hass, mac, connectable=True)
+    if ble_device is None:
+        _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
+        return None
+
+    try:
+        return await establish_connection(
+            BleakClient,
+            ble_device,
+            mac,
+            max_attempts=MAX_CONNECT_ATTEMPTS,
+            timeout=CONNECT_TIMEOUT,
+        )
+    except Exception:
+        _LOGGER.exception("BLE 연결 실패: %s", mac)
+        return None
+
+
+async def _disconnect(client: BleakClient, mac: str) -> None:
+    """안전하게 연결 해제."""
+    try:
+        await client.disconnect()
+    except Exception:
+        _LOGGER.debug("연결 해제 실패 (무시): %s", mac)
+
 
 async def ble_write(
     hass: HomeAssistant,
@@ -25,15 +57,8 @@ async def ble_write(
 
     성공 시 True, 실패 시 False 반환.
     """
-    ble_device = async_ble_device_from_address(hass, mac, connectable=True)
-    if ble_device is None:
-        _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
-        return False
-
-    try:
-        client = await establish_connection(BleakClient, ble_device, mac)
-    except Exception:
-        _LOGGER.exception("BLE 연결 실패: %s", mac)
+    client = await _get_client(hass, mac)
+    if client is None:
         return False
 
     try:
@@ -43,10 +68,7 @@ async def ble_write(
         _LOGGER.exception("GATT write 실패: %s", mac)
         return False
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            _LOGGER.debug("연결 해제 실패 (무시): %s", mac)
+        await _disconnect(client, mac)
 
 
 async def ble_write_and_notify(
@@ -65,15 +87,8 @@ async def ble_write_and_notify(
     Returns:
         (성공 여부, 감지된 상태) — 상태를 판별할 수 없으면 None.
     """
-    ble_device = async_ble_device_from_address(hass, mac, connectable=True)
-    if ble_device is None:
-        _LOGGER.warning("BLE 디바이스를 찾을 수 없음: %s", mac)
-        return False, None
-
-    try:
-        client = await establish_connection(BleakClient, ble_device, mac)
-    except Exception:
-        _LOGGER.exception("BLE 연결 실패: %s", mac)
+    client = await _get_client(hass, mac)
+    if client is None:
         return False, None
 
     detected_state: bool | None = None
@@ -107,7 +122,4 @@ async def ble_write_and_notify(
         _LOGGER.exception("GATT write 실패: %s", mac)
         return False, None
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            _LOGGER.debug("연결 해제 실패 (무시): %s", mac)
+        await _disconnect(client, mac)

@@ -7,11 +7,9 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 
 ## 시작하기 전에
 
-> **다른 BLE 통합과의 충돌**: **Passive BLE Monitor**, **Xiaomi BLE** 등 BLE를 사용하는 다른 통합이 활성화되어 있으면 연결 실패가 빈번하게 발생할 수 있습니다. 이러한 통합들은 Bluetooth 어댑터를 상시 점유(스캔/연결)하여 이 통합의 GATT Write 연결을 방해합니다. 충돌이 의심되면 다른 BLE 통합을 비활성화하거나, 별도의 Bluetooth 어댑터를 사용하세요.
-
 > **BLE 프로토콜을 알아야 합니다**: 이 통합은 디바이스의 GATT Service UUID, Characteristic UUID, 전송할 hex 데이터를 직접 입력하는 방식입니다. 이 용어들이 생소하다면 [BLE GATT 기초](./docs/gatt-basics.md)를 먼저 읽어보세요. 프로토콜 파악 방법은 [HCI 로그 캡처 가이드](./docs/hci-log-capture.md)를 참고하세요.
 
-> **BLE는 실패할 수 있습니다**: BLE 특성상 연결이 한 번에 성공하지 않을 수 있습니다. 이 통합은 `bleak-retry-connector` 기반 자동 재시도를 내장하고 있으므로 일시적인 연결 실패는 자동으로 복구됩니다. 다만 반복적으로 실패한다면 어댑터 거리, 다른 BLE 통합 충돌 등을 점검하세요.
+> **BLE는 실패할 수 있습니다**: BLE 특성상 연결이 한 번에 성공하지 않을 수 있습니다. 이 통합은 `bleak-retry-connector` 기반 자동 재시도를 내장하고 있으므로 일시적인 연결 실패는 자동으로 복구됩니다. 다만 반복적으로 실패한다면 어댑터 거리 등을 점검하세요.
 
 ---
 
@@ -23,8 +21,10 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
   - **셀렉트**: 다중 선택 (예: 에어컨 모드 냉방/난방/제습)
 - **범용 BLE 제어**: 디바이스 프로토콜에 의존하지 않는 범용 GATT Write
 - **UI 기반 설정**: BLE 디바이스 스캔 → 엔티티 타입 선택 → UUID 및 데이터 입력
-- **상태 확인**: Notify Characteristic 응답을 통한 실제 디바이스 상태 반영 (스위치, 셀렉트)
-- **앱 공존**: 커맨드 전송 시에만 BLE 연결하고 즉시 해제하여 제조사 앱과의 충돌 최소화
+- **상태 확인**: Notify Characteristic 응답을 통한 실제 디바이스 상태 반영 (스위치)
+- **연결 유지 (Keep Alive)**: 백그라운드 자동 연결 + 주기적 상태 조회로 연결 끊김 방지
+- **Keepalive 주기 설정**: 디바이스별로 keepalive 간격 조절 가능 (기본 10초, 연결 불안정 시 5~7초 권장)
+- **GATT 타임아웃 보호**: 모든 BLE Write에 3초 타임아웃 적용, 무한 hang 방지
 - **HACS 지원**: HACS를 통해 간단하게 설치 및 업데이트 가능
 
 ---
@@ -57,7 +57,7 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 1. **BLE 디바이스 선택**: 주변 BLE 디바이스를 스캔하여 목록에서 선택
 2. **엔티티 타입 선택**: 스위치 / 버튼 / 셀렉트 중 선택
 3. **GATT 설정**: UUID 및 전송 데이터 입력
-4. **Notify 설정** (선택): 상태 확인용 Notify Characteristic 설정
+4. **Notify 설정** (스위치만, 선택): 상태 확인용 Notify Characteristic 설정
 
 ### 공통 설정 항목
 
@@ -67,7 +67,9 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 |------|------|------|
 | **Service UUID** | O | 디바이스의 GATT Service UUID |
 | **Write Characteristic UUID** | O | 데이터를 보낼 Characteristic UUID |
-| **Write With Response** | X | Write 후 디바이스의 응답을 기다릴지 여부 (기본: OFF). 자세한 내용은 [Write 방식 설명](./docs/write-modes.md) 참고. |
+| **Write With Response** | X | Write 후 디바이스의 ACK를 기다릴지 여부 (기본: OFF). nRF Connect에서 Write 속성이 `Write Without Response`(0x04)만 있으면 반드시 OFF. ON으로 설정했는데 디바이스가 ACK를 지원하지 않으면 명령이 타임아웃됩니다. |
+| **Keep Alive** | X | 체크 시 백그라운드에서 BLE 연결을 유지하고 끊어지면 자동 재연결. 해제 시 명령을 보낼 때만 연결하고 15초 후 자동 해제. |
+| **Keepalive 주기** | X | Keep Alive 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지 (기본: 10초). 연결이 자주 끊기면 5~7초로 줄이세요. |
 
 ### 엔티티 타입별 추가 항목
 
@@ -82,7 +84,35 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 제습=0aa50203
 ```
 
-> **재설정**: 설정 → 기기 및 서비스 → BLE Controller → 우측 메뉴 → **재설정** 에서 언제든 변경 가능합니다.
+### Notify 설정 (스위치)
+
+스위치 엔티티에서 디바이스의 실제 ON/OFF 상태를 확인하려면 Notify를 설정합니다. 모르면 건너뛰어도 됩니다.
+
+| 항목 | 설명 |
+|------|------|
+| **Notify Characteristic UUID** | 디바이스가 상태 변경을 알려줄 때 사용하는 Notify 속성의 UUID. nRF Connect에서 같은 서비스 내 Notify 속성이 있는 항목 |
+| **ON 상태 응답 패턴** | Notify 응답에 이 hex 패턴이 포함되면 ON으로 판단 |
+| **OFF 상태 응답 패턴** | Notify 응답에 이 hex 패턴이 포함되면 OFF로 판단 |
+| **상태 조회 커맨드** | BLE 연결 직후 디바이스에 보내는 "지금 상태가 뭐야?" 명령 (hex). Keep Alive 활성화 시 재연결할 때마다 자동 전송되어 HA 재시작 후에도 상태를 바로 반영 |
+
+> **참고**: Notify 패턴이나 상태 조회 커맨드를 입력하려면 Notify UUID가 반드시 필요합니다.
+
+### 설정 변경
+
+**설정 → 기기 및 서비스 → BLE Controller → 옵션** 에서 설정 후에도 ON/OFF 데이터, Notify 설정, Keep Alive, Keepalive 주기 등을 변경할 수 있습니다.
+
+---
+
+## Keep Alive 동작 방식
+
+Keep Alive를 활성화하면 다음과 같이 동작합니다.
+
+1. **HA 시작 시**: 즉시 디바이스에 BLE 연결 시도
+2. **연결 성공 후**: Notify 구독 + 상태 조회 커맨드 자동 전송 (설정된 경우)
+3. **주기적 ping**: 설정된 간격(기본 10초)마다 상태 조회를 보내 연결 유지
+4. **연결 끊김 감지**: 끊어지면 다음 주기에 자동 재연결
+
+Keep Alive를 끄면 명령을 보낼 때만 연결하고, 15초간 명령이 없으면 자동으로 연결을 해제합니다. 제조사 앱과 병행해야 하는 경우 끄는 것이 좋습니다.
 
 ---
 

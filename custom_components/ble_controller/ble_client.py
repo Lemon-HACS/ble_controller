@@ -28,7 +28,7 @@ from homeassistant.core import HomeAssistant
 _LOGGER = logging.getLogger(__name__)
 
 DISCONNECT_DELAY = 15.0  # 마지막 명령 후 자동 해제까지 대기 시간
-KEEPALIVE_INTERVAL = 15.0  # keepalive 체크 + ping 주기
+KEEPALIVE_INTERVAL = 10.0  # keepalive 체크 + ping 주기
 GATT_TIMEOUT = 3.0  # GATT 오퍼레이션(write 등) 최대 대기 시간
 MAX_ATTEMPTS = 3
 

@@ -91,26 +91,14 @@ class BLEControllerSwitch(SwitchEntity):
         }
 
     async def _send(self, data: bytes, expected_on: bool) -> None:
-        if self._notify_uuid:
-            ok, state = await self._manager.write_and_notify(
-                self._char_uuid,
-                data,
-                response=self._response,
-                notify_on_pattern=self._notify_on,
-                notify_off_pattern=self._notify_off,
-            )
-            self._attr_available = ok
-            if ok:
-                self._attr_is_on = state if state is not None else expected_on
-        else:
-            ok = await self._manager.write(
-                self._char_uuid,
-                data,
-                response=self._response,
-            )
-            self._attr_available = ok
-            if ok:
-                self._attr_is_on = expected_on
+        ok = await self._manager.write(
+            self._char_uuid,
+            data,
+            response=self._response,
+        )
+        self._attr_available = ok
+        if ok:
+            self._attr_is_on = expected_on
         self.async_write_ha_state()
 
     async def _on_connect_query_status(self) -> None:

@@ -33,6 +33,14 @@
           "data_off": "OFF data (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)"
+        },
+        "data_description": {
+          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
+          "char_uuid": "Write characteristic UUID to send data to",
+          "data_on": "Hex data to send when turning ON (e.g. 0aa5010101)",
+          "data_off": "Hex data to send when turning OFF (e.g. 0aa5010100)",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
         }
       },
       "button": {
@@ -44,6 +52,13 @@
           "data_press": "Command data (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)"
+        },
+        "data_description": {
+          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
+          "char_uuid": "Write characteristic UUID to send data to",
+          "data_press": "Hex data to send when button is pressed",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
         }
       },
       "select": {
@@ -55,16 +70,29 @@
           "options": "Options (label=hex, one per line)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)"
+        },
+        "data_description": {
+          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
+          "char_uuid": "Write characteristic UUID to send data to",
+          "options": "One per line in 'label=hexdata' format (e.g. Mode1=0aa501)",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
         }
       },
       "notify": {
         "title": "Notify Configuration (Optional)",
-        "description": "To verify device state via Notify, fill in the fields below. Leave empty to skip.",
+        "description": "Use Notify to detect the actual ON/OFF state of the device. Leave empty to skip.",
         "data": {
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
           "notify_off_pattern": "OFF state response pattern (hex)",
-          "status_query_data": "Status query command (hex, sent on connect)"
+          "status_query_data": "Status query command (hex)"
+        },
+        "data_description": {
+          "notify_uuid": "Characteristic UUID with Notify property (find in nRF Connect)",
+          "notify_on_pattern": "Hex pattern in Notify response when device is ON (e.g. 0101)",
+          "notify_off_pattern": "Hex pattern in Notify response when device is OFF (e.g. 0100)",
+          "status_query_data": "Command sent to device on connect to query current state (e.g. 0aa501ff). Auto-sent when Keep Alive is enabled"
         }
       }
     }
@@ -77,15 +105,26 @@
     "step": {
       "switch_options": {
         "title": "Switch Settings",
+        "description": "Change ON/OFF data and Notify settings.",
         "data": {
           "data_on": "ON data (hex)",
           "data_off": "OFF data (hex)",
           "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
           "notify_off_pattern": "OFF state response pattern (hex)",
-          "status_query_data": "Status query command (hex, sent on connect)",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "status_query_data": "Status query command (hex)"
+        },
+        "data_description": {
+          "data_on": "Hex data to send when turning ON (e.g. 0aa5010101)",
+          "data_off": "Hex data to send when turning OFF (e.g. 0aa5010100)",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running",
+          "notify_uuid": "Characteristic UUID with Notify property",
+          "notify_on_pattern": "Hex pattern in Notify response when device is ON (e.g. 0101)",
+          "notify_off_pattern": "Hex pattern in Notify response when device is OFF (e.g. 0100)",
+          "status_query_data": "Command sent on connect to query state (e.g. 0aa501ff). Auto-sent with Keep Alive"
         }
       },
       "button_options": {
@@ -94,6 +133,11 @@
           "data_press": "Command data (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)"
+        },
+        "data_description": {
+          "data_press": "Hex data to send when button is pressed",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
         }
       },
       "select_options": {
@@ -102,6 +146,11 @@
           "options": "Options (label=hex, one per line)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)"
+        },
+        "data_description": {
+          "options": "One per line in 'label=hexdata' format",
+          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
+          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
         }
       }
     }

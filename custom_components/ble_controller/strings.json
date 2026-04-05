@@ -33,6 +33,14 @@
           "data_off": "OFF 데이터 (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+        },
+        "data_description": {
+          "service_uuid": "nRF Connect 등에서 확인한 BLE 서비스 UUID",
+          "char_uuid": "데이터를 보낼 Write 특성 UUID",
+          "data_on": "ON 시 보낼 hex 데이터 (예: 0aa5010101)",
+          "data_off": "OFF 시 보낼 hex 데이터 (예: 0aa5010100)",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지"
         }
       },
       "button": {
@@ -44,6 +52,13 @@
           "data_press": "전송 데이터 (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+        },
+        "data_description": {
+          "service_uuid": "nRF Connect 등에서 확인한 BLE 서비스 UUID",
+          "char_uuid": "데이터를 보낼 Write 특성 UUID",
+          "data_press": "버튼 누를 때 보낼 hex 데이터",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지"
         }
       },
       "select": {
@@ -55,16 +70,29 @@
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+        },
+        "data_description": {
+          "service_uuid": "nRF Connect 등에서 확인한 BLE 서비스 UUID",
+          "char_uuid": "데이터를 보낼 Write 특성 UUID",
+          "options": "한 줄에 하나씩 '라벨=hex데이터' 형식으로 입력 (예: 모드1=0aa501)",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지"
         }
       },
       "notify": {
         "title": "Notify 설정 (선택)",
-        "description": "Notify를 통해 디바이스 상태를 확인하려면 아래 항목을 입력하세요. 건너뛰려면 비워두세요.",
+        "description": "Notify를 통해 디바이스의 실제 ON/OFF 상태를 확인할 수 있습니다. 모르면 비워두고 건너뛰세요.",
         "data": {
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
           "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
-          "status_query_data": "상태 조회 커맨드 (hex, 연결 시 자동 전송)"
+          "status_query_data": "상태 조회 커맨드 (hex)"
+        },
+        "data_description": {
+          "notify_uuid": "디바이스가 상태를 알려주는 Notify 특성 UUID (nRF Connect에서 Notify 속성이 있는 UUID)",
+          "notify_on_pattern": "디바이스가 ON일 때 Notify로 보내는 응답에 포함된 hex 패턴 (예: 0101)",
+          "notify_off_pattern": "디바이스가 OFF일 때 Notify로 보내는 응답에 포함된 hex 패턴 (예: 0100)",
+          "status_query_data": "연결 직후 디바이스에 보낼 상태 조회 명령 (예: 0aa501ff). 연결 유지 활성화 시 자동 전송됨"
         }
       }
     }
@@ -77,15 +105,26 @@
     "step": {
       "switch_options": {
         "title": "스위치 설정 변경",
+        "description": "ON/OFF 데이터와 Notify 설정을 변경할 수 있습니다.",
         "data": {
           "data_on": "ON 데이터 (hex)",
           "data_off": "OFF 데이터 (hex)",
           "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
           "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
-          "status_query_data": "상태 조회 커맨드 (hex, 연결 시 자동 전송)",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "status_query_data": "상태 조회 커맨드 (hex)"
+        },
+        "data_description": {
+          "data_on": "ON 시 보낼 hex 데이터 (예: 0aa5010101)",
+          "data_off": "OFF 시 보낼 hex 데이터 (예: 0aa5010100)",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지",
+          "notify_uuid": "디바이스가 상태를 알려주는 Notify 특성 UUID",
+          "notify_on_pattern": "디바이스가 ON일 때 응답에 포함된 hex 패턴 (예: 0101)",
+          "notify_off_pattern": "디바이스가 OFF일 때 응답에 포함된 hex 패턴 (예: 0100)",
+          "status_query_data": "연결 직후 보낼 상태 조회 명령 (예: 0aa501ff). 연결 유지 시 자동 전송"
         }
       },
       "button_options": {
@@ -94,6 +133,11 @@
           "data_press": "전송 데이터 (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+        },
+        "data_description": {
+          "data_press": "버튼 누를 때 보낼 hex 데이터",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지"
         }
       },
       "select_options": {
@@ -102,6 +146,11 @@
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+        },
+        "data_description": {
+          "options": "한 줄에 하나씩 '라벨=hex데이터' 형식으로 입력",
+          "write_with_response": "BLE Write 후 응답 확인 여부 (대부분 체크)",
+          "keep_alive": "HA 실행 중 60초마다 자동 재연결하여 연결 상태 유지"
         }
       }
     }

@@ -75,6 +75,10 @@ class BLEControllerSwitch(SwitchEntity):
         self._attr_is_on = None
         self._attr_available = True
 
+        # Persistent notify 구독 등록 (연결 시 자동 구독)
+        if self._notify_uuid:
+            self._manager.setup_persistent_notify(self._notify_uuid)
+
         if self._keep_alive and self._status_query_data and self._notify_uuid:
             self._manager.set_on_connect_callback(self._on_connect_query_status)
 
@@ -92,7 +96,6 @@ class BLEControllerSwitch(SwitchEntity):
                 self._char_uuid,
                 data,
                 response=self._response,
-                notify_uuid=self._notify_uuid,
                 notify_on_pattern=self._notify_on,
                 notify_off_pattern=self._notify_off,
             )
@@ -115,7 +118,6 @@ class BLEControllerSwitch(SwitchEntity):
         state = await self._manager.query_status(
             self._char_uuid,
             self._status_query_data,
-            notify_uuid=self._notify_uuid,
             notify_on_pattern=self._notify_on,
             notify_off_pattern=self._notify_off,
         )

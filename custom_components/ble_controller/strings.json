@@ -62,7 +62,8 @@
         "data": {
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
-          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)"
+          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
+          "status_query_data": "상태 조회 커맨드 (hex, 연결 시 자동 전송)"
         }
       }
     }
@@ -81,6 +82,7 @@
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
           "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
+          "status_query_data": "상태 조회 커맨드 (hex, 연결 시 자동 전송)",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },

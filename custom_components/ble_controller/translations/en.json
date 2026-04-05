@@ -62,7 +62,8 @@
         "data": {
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
-          "notify_off_pattern": "OFF state response pattern (hex)"
+          "notify_off_pattern": "OFF state response pattern (hex)",
+          "status_query_data": "Status query command (hex, sent on connect)"
         }
       }
     }
@@ -81,6 +82,7 @@
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
           "notify_off_pattern": "OFF state response pattern (hex)",
+          "status_query_data": "Status query command (hex, sent on connect)",
           "keep_alive": "Keep Alive (background auto-connect)"
         }
       },

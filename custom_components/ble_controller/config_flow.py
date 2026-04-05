@@ -22,6 +22,7 @@ from .const import (
     CONF_DATA_PRESS,
     CONF_ENTITY_TYPE,
     CONF_KEEP_ALIVE,
+    CONF_STATUS_QUERY_DATA,
     CONF_NOTIFY_OFF_PATTERN,
     CONF_NOTIFY_ON_PATTERN,
     CONF_NOTIFY_UUID,
@@ -295,6 +296,8 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
             notify_on = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
             notify_off = user_input.get(CONF_NOTIFY_OFF_PATTERN, "").strip()
 
+            status_query = user_input.get(CONF_STATUS_QUERY_DATA, "").strip()
+
             try:
                 if notify_uuid:
                     data[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
@@ -302,6 +305,8 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                         data[CONF_NOTIFY_ON_PATTERN] = _hex(notify_on)
                     if notify_off:
                         data[CONF_NOTIFY_OFF_PATTERN] = _hex(notify_off)
+                    if status_query:
+                        data[CONF_STATUS_QUERY_DATA] = _hex(status_query)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
                 return self.async_show_form(
@@ -331,6 +336,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Optional(CONF_NOTIFY_UUID, default=""): str,
                 vol.Optional(CONF_NOTIFY_ON_PATTERN, default=""): str,
                 vol.Optional(CONF_NOTIFY_OFF_PATTERN, default=""): str,
+                vol.Optional(CONF_STATUS_QUERY_DATA, default=""): str,
             }
         )
 
@@ -366,6 +372,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 )
                 new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
                 notify_uuid = user_input.get(CONF_NOTIFY_UUID, "").strip()
+                status_query = user_input.get(CONF_STATUS_QUERY_DATA, "").strip()
                 if notify_uuid:
                     new[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
                     on_p = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
@@ -374,10 +381,15 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         new[CONF_NOTIFY_ON_PATTERN] = _hex(on_p)
                     if off_p:
                         new[CONF_NOTIFY_OFF_PATTERN] = _hex(off_p)
+                    if status_query:
+                        new[CONF_STATUS_QUERY_DATA] = _hex(status_query)
+                    else:
+                        new.pop(CONF_STATUS_QUERY_DATA, None)
                 else:
                     new.pop(CONF_NOTIFY_UUID, None)
                     new.pop(CONF_NOTIFY_ON_PATTERN, None)
                     new.pop(CONF_NOTIFY_OFF_PATTERN, None)
+                    new.pop(CONF_STATUS_QUERY_DATA, None)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
@@ -410,6 +422,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_NOTIFY_OFF_PATTERN,
                         default=data.get(CONF_NOTIFY_OFF_PATTERN, ""),
+                    ): str,
+                    vol.Optional(
+                        CONF_STATUS_QUERY_DATA,
+                        default=data.get(CONF_STATUS_QUERY_DATA, ""),
                     ): str,
                 }
             ),

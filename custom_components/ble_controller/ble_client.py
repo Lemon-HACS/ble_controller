@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Callable, Coroutine
 from typing import Any
 
 from bleak_retry_connector import (
@@ -47,6 +48,7 @@ class BLEDeviceManager:
         self._operation_lock = asyncio.Lock()
         self._disconnect_timer: asyncio.TimerHandle | None = None
         self._keepalive_task: asyncio.Task | None = None
+        self._on_connect_callback: Callable[[], Coroutine] | None = None
         self._expected_disconnect = False
 
     def _get_ble_device(self):
@@ -146,6 +148,12 @@ class BLEDeviceManager:
             except Exception:
                 _LOGGER.debug("[BLE %s] 연결 해제 실패 (무시)", self._mac)
 
+    def set_on_connect_callback(
+        self, callback: Callable[[], Coroutine] | None
+    ) -> None:
+        """연결 성공 시 호출할 콜백 등록 (예: 초기 상태 조회)."""
+        self._on_connect_callback = callback
+
     def start_keepalive(self) -> None:
         """keep_alive 모드일 때 백그라운드 연결 + keepalive 루프 시작."""
         if self._keep_alive and self._keepalive_task is None:
@@ -155,16 +163,88 @@ class BLEDeviceManager:
         """백그라운드 keepalive 루프: 즉시 연결 후 주기적으로 상태 체크 + 재연결."""
         try:
             _LOGGER.info("[BLE %s] Keepalive 시작 — 초기 연결 시도", self._mac)
-            await self._ensure_connected()
+            if await self._ensure_connected():
+                await self._fire_on_connect()
             while True:
                 await asyncio.sleep(KEEPALIVE_INTERVAL)
                 if self._client is None or not self._client.is_connected:
                     _LOGGER.info("[BLE %s] Keepalive: 연결 끊김 감지 — 재연결", self._mac)
-                    await self._ensure_connected()
+                    if await self._ensure_connected():
+                        await self._fire_on_connect()
                 else:
                     _LOGGER.debug("[BLE %s] Keepalive: 연결 유지 중", self._mac)
         except asyncio.CancelledError:
             _LOGGER.debug("[BLE %s] Keepalive 루프 종료", self._mac)
+
+    async def _fire_on_connect(self) -> None:
+        """on_connect 콜백 실행."""
+        if self._on_connect_callback is not None:
+            try:
+                await self._on_connect_callback()
+            except Exception:
+                _LOGGER.exception("[BLE %s] on_connect 콜백 실패", self._mac)
+
+    async def query_status(
+        self,
+        char_uuid: str,
+        data: bytes,
+        notify_uuid: str,
+        notify_on_pattern: bytes | None = None,
+        notify_off_pattern: bytes | None = None,
+        notify_timeout: float = 5.0,
+    ) -> bool | None:
+        """상태 조회 커맨드 전송 후 Notify로 ON/OFF 판별.
+
+        Returns:
+            True=ON, False=OFF, None=판별 불가.
+        """
+        _LOGGER.info(
+            "[BLE %s] query_status: char=%s, data=%s, notify=%s",
+            self._mac,
+            char_uuid,
+            data.hex(),
+            notify_uuid,
+        )
+        async with self._operation_lock:
+            if not await self._ensure_connected():
+                _LOGGER.warning("[BLE %s] query_status: 연결 실패", self._mac)
+                return None
+
+            detected_state: bool | None = None
+
+            try:
+                state_event = asyncio.Event()
+
+                def on_notify(_handle: int, notify_data: bytearray) -> None:
+                    nonlocal detected_state
+                    raw = bytes(notify_data)
+                    _LOGGER.debug(
+                        "[BLE %s] query_status notify: %s", self._mac, raw.hex()
+                    )
+                    if notify_on_pattern and notify_on_pattern in raw:
+                        detected_state = True
+                        state_event.set()
+                    elif notify_off_pattern and notify_off_pattern in raw:
+                        detected_state = False
+                        state_event.set()
+
+                await self._client.start_notify(notify_uuid, on_notify)
+                await self._client.write_gatt_char(char_uuid, data, response=False)
+                try:
+                    await asyncio.wait_for(
+                        state_event.wait(), timeout=notify_timeout
+                    )
+                except TimeoutError:
+                    _LOGGER.debug("[BLE %s] query_status: Notify 타임아웃", self._mac)
+                await self._client.stop_notify(notify_uuid)
+
+                _LOGGER.info(
+                    "[BLE %s] query_status 결과: %s", self._mac, detected_state
+                )
+                return detected_state
+            except Exception:
+                _LOGGER.exception("[BLE %s] query_status 실패", self._mac)
+                return None
 
     async def async_shutdown(self) -> None:
         """통합 언로드 시 정리."""

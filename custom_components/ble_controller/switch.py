@@ -15,9 +15,11 @@ from .const import (
     CONF_CHAR_UUID,
     CONF_DATA_OFF,
     CONF_DATA_ON,
+    CONF_KEEP_ALIVE,
     CONF_NOTIFY_OFF_PATTERN,
     CONF_NOTIFY_ON_PATTERN,
     CONF_NOTIFY_UUID,
+    CONF_STATUS_QUERY_DATA,
     CONF_WRITE_WITH_RESPONSE,
     DOMAIN,
 )
@@ -61,10 +63,20 @@ class BLEControllerSwitch(SwitchEntity):
             else None
         )
 
+        self._status_query_data: bytes | None = (
+            bytes.fromhex(self._data[CONF_STATUS_QUERY_DATA])
+            if self._data.get(CONF_STATUS_QUERY_DATA)
+            else None
+        )
+        self._keep_alive: bool = self._data.get(CONF_KEEP_ALIVE, False)
+
         self._attr_name = self._name
         self._attr_unique_id = f"{DOMAIN}_switch_{self._mac.replace(':', '_').lower()}"
         self._attr_is_on = None
         self._attr_available = True
+
+        if self._keep_alive and self._status_query_data and self._notify_uuid:
+            self._manager.set_on_connect_callback(self._on_connect_query_status)
 
     @property
     def device_info(self):
@@ -97,6 +109,25 @@ class BLEControllerSwitch(SwitchEntity):
             if ok:
                 self._attr_is_on = expected_on
         self.async_write_ha_state()
+
+    async def _on_connect_query_status(self) -> None:
+        """keepalive 연결 성공 시 상태 조회."""
+        state = await self._manager.query_status(
+            self._char_uuid,
+            self._status_query_data,
+            notify_uuid=self._notify_uuid,
+            notify_on_pattern=self._notify_on,
+            notify_off_pattern=self._notify_off,
+        )
+        if state is not None:
+            self._attr_is_on = state
+            self._attr_available = True
+            self.async_write_ha_state()
+            _LOGGER.info(
+                "[BLE %s] 초기 상태 조회 결과: %s",
+                self._mac,
+                "ON" if state else "OFF",
+            )
 
     async def async_turn_on(self, **kwargs) -> None:
         await self._send(self._data_on, True)

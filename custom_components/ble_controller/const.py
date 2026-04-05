@@ -5,6 +5,7 @@ DOMAIN = "ble_controller"
 CONF_SERVICE_UUID = "service_uuid"
 CONF_CHAR_UUID = "char_uuid"
 CONF_WRITE_WITH_RESPONSE = "write_with_response"
+CONF_KEEP_ALIVE = "keep_alive"
 CONF_ENTITY_TYPE = "entity_type"
 
 # switch

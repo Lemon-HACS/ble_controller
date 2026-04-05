@@ -1,7 +1,8 @@
-"""BLE GATT 클라이언트 — persistent connection + timed disconnect 패턴.
+"""BLE GATT 클라이언트 — persistent connection + keepalive 패턴.
 
 SwitchBot / LED BLE 통합과 동일한 아키텍처:
   - 첫 커맨드에서 연결, 일정 시간 미사용 시 자동 해제
+  - keep_alive 모드: 백그라운드에서 미리 연결 + 주기적 재연결
   - asyncio.Lock으로 연결/명령 직렬화
   - establish_connection + BleakClientWithServiceCache 사용
 """
@@ -25,6 +26,7 @@ from homeassistant.core import HomeAssistant
 _LOGGER = logging.getLogger(__name__)
 
 DISCONNECT_DELAY = 15.0  # 마지막 명령 후 자동 해제까지 대기 시간
+KEEPALIVE_INTERVAL = 60.0  # keepalive 체크 주기
 MAX_ATTEMPTS = 3
 
 
@@ -34,13 +36,17 @@ class BLEDeviceManager:
     연결을 유지하다가 DISCONNECT_DELAY 동안 미사용 시 자동 해제.
     """
 
-    def __init__(self, hass: HomeAssistant, mac: str) -> None:
+    def __init__(
+        self, hass: HomeAssistant, mac: str, *, keep_alive: bool = False
+    ) -> None:
         self._hass = hass
         self._mac = mac
+        self._keep_alive = keep_alive
         self._client: BleakClientWithServiceCache | None = None
         self._connect_lock = asyncio.Lock()
         self._operation_lock = asyncio.Lock()
         self._disconnect_timer: asyncio.TimerHandle | None = None
+        self._keepalive_task: asyncio.Task | None = None
         self._expected_disconnect = False
 
     def _get_ble_device(self):
@@ -62,6 +68,8 @@ class BLEDeviceManager:
             self._disconnect_timer = None
 
     def _reset_disconnect_timer(self) -> None:
+        if self._keep_alive:
+            return
         self._cancel_disconnect_timer()
         loop = self._hass.loop
         self._disconnect_timer = loop.call_later(
@@ -138,8 +146,35 @@ class BLEDeviceManager:
             except Exception:
                 _LOGGER.debug("[BLE %s] 연결 해제 실패 (무시)", self._mac)
 
+    def start_keepalive(self) -> None:
+        """keep_alive 모드일 때 백그라운드 연결 + keepalive 루프 시작."""
+        if self._keep_alive and self._keepalive_task is None:
+            self._keepalive_task = asyncio.ensure_future(self._keepalive_loop())
+
+    async def _keepalive_loop(self) -> None:
+        """백그라운드 keepalive 루프: 즉시 연결 후 주기적으로 상태 체크 + 재연결."""
+        try:
+            _LOGGER.info("[BLE %s] Keepalive 시작 — 초기 연결 시도", self._mac)
+            await self._ensure_connected()
+            while True:
+                await asyncio.sleep(KEEPALIVE_INTERVAL)
+                if self._client is None or not self._client.is_connected:
+                    _LOGGER.info("[BLE %s] Keepalive: 연결 끊김 감지 — 재연결", self._mac)
+                    await self._ensure_connected()
+                else:
+                    _LOGGER.debug("[BLE %s] Keepalive: 연결 유지 중", self._mac)
+        except asyncio.CancelledError:
+            _LOGGER.debug("[BLE %s] Keepalive 루프 종료", self._mac)
+
     async def async_shutdown(self) -> None:
         """통합 언로드 시 정리."""
+        if self._keepalive_task is not None:
+            self._keepalive_task.cancel()
+            try:
+                await self._keepalive_task
+            except asyncio.CancelledError:
+                pass
+            self._keepalive_task = None
         await self._disconnect()
         try:
             await close_stale_connections_by_address(self._mac)

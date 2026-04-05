@@ -30,7 +30,8 @@
           "char_uuid": "Write Characteristic UUID",
           "data_on": "ON 데이터 (hex)",
           "data_off": "OFF 데이터 (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },
       "button": {
@@ -40,7 +41,8 @@
           "service_uuid": "Service UUID",
           "char_uuid": "Write Characteristic UUID",
           "data_press": "전송 데이터 (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },
       "select": {
@@ -50,7 +52,8 @@
           "service_uuid": "Service UUID",
           "char_uuid": "Write Characteristic UUID",
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },
       "notify": {
@@ -77,21 +80,24 @@
           "write_with_response": "Write With Response",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
-          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)"
+          "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },
       "button_options": {
         "title": "버튼 설정 변경",
         "data": {
           "data_press": "전송 데이터 (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       },
       "select_options": {
         "title": "셀렉트 설정 변경",
         "data": {
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
         }
       }
     }

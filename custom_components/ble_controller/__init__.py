@@ -5,7 +5,7 @@ from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
 
 from .ble_client import BLEDeviceManager
-from .const import CONF_ENTITY_TYPE, DOMAIN
+from .const import CONF_ENTITY_TYPE, CONF_KEEP_ALIVE, DOMAIN
 
 PLATFORM_MAP = {
     "switch": "switch",
@@ -19,7 +19,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     mac = entry.data[CONF_ADDRESS]
-    manager = BLEDeviceManager(hass, mac)
+    keep_alive = entry.data.get(CONF_KEEP_ALIVE, False)
+    manager = BLEDeviceManager(hass, mac, keep_alive=keep_alive)
+    manager.start_keepalive()
 
     hass.data[DOMAIN][entry.entry_id] = {
         "data": entry.data,

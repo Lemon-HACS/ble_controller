@@ -30,7 +30,8 @@
           "char_uuid": "Write Characteristic UUID",
           "data_on": "ON data (hex)",
           "data_off": "OFF data (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       },
       "button": {
@@ -40,7 +41,8 @@
           "service_uuid": "Service UUID",
           "char_uuid": "Write Characteristic UUID",
           "data_press": "Command data (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       },
       "select": {
@@ -50,7 +52,8 @@
           "service_uuid": "Service UUID",
           "char_uuid": "Write Characteristic UUID",
           "options": "Options (label=hex, one per line)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       },
       "notify": {
@@ -77,21 +80,24 @@
           "write_with_response": "Write With Response",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
-          "notify_off_pattern": "OFF state response pattern (hex)"
+          "notify_off_pattern": "OFF state response pattern (hex)",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       },
       "button_options": {
         "title": "Button Settings",
         "data": {
           "data_press": "Command data (hex)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       },
       "select_options": {
         "title": "Select Settings",
         "data": {
           "options": "Options (label=hex, one per line)",
-          "write_with_response": "Write With Response"
+          "write_with_response": "Write With Response",
+          "keep_alive": "Keep Alive (background auto-connect)"
         }
       }
     }

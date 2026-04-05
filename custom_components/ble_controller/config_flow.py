@@ -21,6 +21,7 @@ from .const import (
     CONF_DATA_ON,
     CONF_DATA_PRESS,
     CONF_ENTITY_TYPE,
+    CONF_KEEP_ALIVE,
     CONF_NOTIFY_OFF_PATTERN,
     CONF_NOTIFY_ON_PATTERN,
     CONF_NOTIFY_UUID,
@@ -172,6 +173,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_WRITE_WITH_RESPONSE: user_input.get(
                         CONF_WRITE_WITH_RESPONSE, False
                     ),
+                    CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
                 }
                 return await self.async_step_notify()
 
@@ -184,6 +186,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_DATA_ON): str,
                     vol.Required(CONF_DATA_OFF): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
+                    vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
                 }
             ),
             errors=errors,
@@ -216,6 +219,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_WRITE_WITH_RESPONSE: user_input.get(
                             CONF_WRITE_WITH_RESPONSE, False
                         ),
+                        CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
                     },
                 )
 
@@ -227,6 +231,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CHAR_UUID): str,
                     vol.Required(CONF_DATA_PRESS): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
+                    vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
                 }
             ),
             errors=errors,
@@ -259,6 +264,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_WRITE_WITH_RESPONSE: user_input.get(
                             CONF_WRITE_WITH_RESPONSE, False
                         ),
+                        CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
                     },
                 )
 
@@ -270,6 +276,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CHAR_UUID): str,
                     vol.Required(CONF_OPTIONS): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
+                    vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
                 }
             ),
             errors=errors,
@@ -357,6 +364,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
+                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
                 notify_uuid = user_input.get(CONF_NOTIFY_UUID, "").strip()
                 if notify_uuid:
                     new[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
@@ -389,6 +397,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         default=data.get(CONF_WRITE_WITH_RESPONSE, False),
                     ): bool,
                     vol.Optional(
+                        CONF_KEEP_ALIVE,
+                        default=data.get(CONF_KEEP_ALIVE, False),
+                    ): bool,
+                    vol.Optional(
                         CONF_NOTIFY_UUID, default=data.get(CONF_NOTIFY_UUID, "")
                     ): str,
                     vol.Optional(
@@ -417,6 +429,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
+                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
@@ -435,6 +448,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_WRITE_WITH_RESPONSE,
                         default=data.get(CONF_WRITE_WITH_RESPONSE, False),
+                    ): bool,
+                    vol.Optional(
+                        CONF_KEEP_ALIVE,
+                        default=data.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                 }
             ),
@@ -455,6 +472,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
+                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
@@ -476,6 +494,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_WRITE_WITH_RESPONSE,
                         default=data.get(CONF_WRITE_WITH_RESPONSE, False),
+                    ): bool,
+                    vol.Optional(
+                        CONF_KEEP_ALIVE,
+                        default=data.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                 }
             ),

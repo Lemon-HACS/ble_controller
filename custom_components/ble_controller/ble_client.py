@@ -28,7 +28,7 @@ from homeassistant.core import HomeAssistant
 _LOGGER = logging.getLogger(__name__)
 
 DISCONNECT_DELAY = 15.0  # 마지막 명령 후 자동 해제까지 대기 시간
-KEEPALIVE_INTERVAL = 30.0  # keepalive 체크 주기
+KEEPALIVE_INTERVAL = 15.0  # keepalive 체크 + ping 주기
 GATT_TIMEOUT = 3.0  # GATT 오퍼레이션(write 등) 최대 대기 시간
 MAX_ATTEMPTS = 3
 
@@ -251,7 +251,7 @@ class BLEDeviceManager:
             self._keepalive_task = asyncio.ensure_future(self._keepalive_loop())
 
     async def _keepalive_loop(self) -> None:
-        """백그라운드 keepalive 루프: 즉시 연결 후 주기적으로 상태 체크 + 재연결."""
+        """백그라운드 keepalive 루프: 즉시 연결 후 주기적으로 ping + 재연결."""
         try:
             _LOGGER.info("[BLE %s] Keepalive 시작 — 초기 연결 시도", self._mac)
             if await self._ensure_connected():
@@ -263,7 +263,9 @@ class BLEDeviceManager:
                     if await self._ensure_connected():
                         await self._fire_on_connect()
                 else:
-                    _LOGGER.debug("[BLE %s] Keepalive: 연결 유지 중", self._mac)
+                    # 연결 유지 중 — ping으로 연결 살리기 + 상태 갱신
+                    _LOGGER.debug("[BLE %s] Keepalive: ping (상태 조회)", self._mac)
+                    await self._fire_on_connect()
         except asyncio.CancelledError:
             _LOGGER.debug("[BLE %s] Keepalive 루프 종료", self._mac)
 

@@ -35,12 +35,12 @@
           "keep_alive": "Keep Alive (background auto-connect)"
         },
         "data_description": {
-          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
-          "char_uuid": "Write characteristic UUID to send data to",
-          "data_on": "Hex data to send when turning ON (e.g. 0aa5010101)",
-          "data_off": "Hex data to send when turning OFF (e.g. 0aa5010100)",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
+          "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
+          "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
+          "data_on": "Hex bytes sent to the device when switching ON (e.g. 0aa5010101)",
+          "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation (Write Without Response). Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
       "button": {
@@ -54,11 +54,11 @@
           "keep_alive": "Keep Alive (background auto-connect)"
         },
         "data_description": {
-          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
-          "char_uuid": "Write characteristic UUID to send data to",
-          "data_press": "Hex data to send when button is pressed",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
+          "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
+          "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
+          "data_press": "Hex bytes sent to the device when button is pressed",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
       "select": {
@@ -72,16 +72,16 @@
           "keep_alive": "Keep Alive (background auto-connect)"
         },
         "data_description": {
-          "service_uuid": "BLE service UUID found in nRF Connect or similar tool",
-          "char_uuid": "Write characteristic UUID to send data to",
-          "options": "One per line in 'label=hexdata' format (e.g. Mode1=0aa501)",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
+          "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
+          "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
+          "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
       "notify": {
         "title": "Notify Configuration (Optional)",
-        "description": "Use Notify to detect the actual ON/OFF state of the device. Leave empty to skip.",
+        "description": "Use Notify to detect the actual ON/OFF state of the device. Leave empty to skip if unsure.",
         "data": {
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
@@ -89,10 +89,10 @@
           "status_query_data": "Status query command (hex)"
         },
         "data_description": {
-          "notify_uuid": "Characteristic UUID with Notify property (find in nRF Connect)",
-          "notify_on_pattern": "Hex pattern in Notify response when device is ON (e.g. 0101)",
-          "notify_off_pattern": "Hex pattern in Notify response when device is OFF (e.g. 0100)",
-          "status_query_data": "Command sent to device on connect to query current state (e.g. 0aa501ff). Auto-sent when Keep Alive is enabled"
+          "notify_uuid": "Characteristic UUID with Notify property that the device uses to push state changes. Find it in nRF Connect under the same service — look for the Notify property",
+          "notify_on_pattern": "Hex byte pattern found in Notify responses when the device is ON. If this pattern is contained in the response data, the device is considered ON (e.g. 0101)",
+          "notify_off_pattern": "Hex byte pattern found in Notify responses when the device is OFF. If this pattern is contained in the response data, the device is considered OFF (e.g. 0100)",
+          "status_query_data": "Hex command sent to the device right after BLE connection to ask 'what is your current state?'. The device responds via Notify. When Keep Alive is enabled, this is sent automatically on every reconnect"
         }
       }
     }
@@ -117,14 +117,14 @@
           "status_query_data": "Status query command (hex)"
         },
         "data_description": {
-          "data_on": "Hex data to send when turning ON (e.g. 0aa5010101)",
-          "data_off": "Hex data to send when turning OFF (e.g. 0aa5010100)",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running",
-          "notify_uuid": "Characteristic UUID with Notify property",
-          "notify_on_pattern": "Hex pattern in Notify response when device is ON (e.g. 0101)",
-          "notify_off_pattern": "Hex pattern in Notify response when device is OFF (e.g. 0100)",
-          "status_query_data": "Command sent on connect to query state (e.g. 0aa501ff). Auto-sent with Keep Alive"
+          "data_on": "Hex bytes sent to the device when switching ON (e.g. 0aa5010101)",
+          "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "notify_uuid": "Characteristic UUID with Notify property that the device uses to push state changes",
+          "notify_on_pattern": "Hex pattern in Notify responses when device is ON. If contained in response, device is considered ON (e.g. 0101)",
+          "notify_off_pattern": "Hex pattern in Notify responses when device is OFF. If contained in response, device is considered OFF (e.g. 0100)",
+          "status_query_data": "Hex command sent right after BLE connection to ask current state. Auto-sent on every reconnect when Keep Alive is enabled"
         }
       },
       "button_options": {
@@ -135,9 +135,9 @@
           "keep_alive": "Keep Alive (background auto-connect)"
         },
         "data_description": {
-          "data_press": "Hex data to send when button is pressed",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
+          "data_press": "Hex bytes sent to the device when button is pressed",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
       "select_options": {
@@ -148,9 +148,9 @@
           "keep_alive": "Keep Alive (background auto-connect)"
         },
         "data_description": {
-          "options": "One per line in 'label=hexdata' format",
-          "write_with_response": "Wait for BLE write acknowledgement (recommended)",
-          "keep_alive": "Auto-reconnect every 60s to keep connection alive while HA is running"
+          "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
+          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       }
     }

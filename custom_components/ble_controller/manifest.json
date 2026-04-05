@@ -1,7 +1,7 @@
 {
   "domain": "ble_controller",
   "name": "BLE Controller",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "codeowners": ["@LemonDouble"],
   "config_flow": true,
   "dependencies": ["bluetooth"],

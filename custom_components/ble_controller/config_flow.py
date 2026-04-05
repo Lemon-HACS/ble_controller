@@ -357,72 +357,62 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self.config_entry.data
+        current = {**self.config_entry.data, **self.config_entry.options}
 
         if user_input is not None:
             try:
-                new = {**data}
-                new[CONF_DATA_ON] = _hex(user_input[CONF_DATA_ON])
-                new[CONF_DATA_OFF] = _hex(user_input[CONF_DATA_OFF])
-                new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
+                opts = {}
+                opts[CONF_DATA_ON] = _hex(user_input[CONF_DATA_ON])
+                opts[CONF_DATA_OFF] = _hex(user_input[CONF_DATA_OFF])
+                opts[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
-                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
                 notify_uuid = user_input.get(CONF_NOTIFY_UUID, "").strip()
                 status_query = user_input.get(CONF_STATUS_QUERY_DATA, "").strip()
                 if notify_uuid:
-                    new[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
+                    opts[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
                     on_p = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
                     off_p = user_input.get(CONF_NOTIFY_OFF_PATTERN, "").strip()
                     if on_p:
-                        new[CONF_NOTIFY_ON_PATTERN] = _hex(on_p)
+                        opts[CONF_NOTIFY_ON_PATTERN] = _hex(on_p)
                     if off_p:
-                        new[CONF_NOTIFY_OFF_PATTERN] = _hex(off_p)
+                        opts[CONF_NOTIFY_OFF_PATTERN] = _hex(off_p)
                     if status_query:
-                        new[CONF_STATUS_QUERY_DATA] = _hex(status_query)
-                    else:
-                        new.pop(CONF_STATUS_QUERY_DATA, None)
-                else:
-                    new.pop(CONF_NOTIFY_UUID, None)
-                    new.pop(CONF_NOTIFY_ON_PATTERN, None)
-                    new.pop(CONF_NOTIFY_OFF_PATTERN, None)
-                    new.pop(CONF_STATUS_QUERY_DATA, None)
+                        opts[CONF_STATUS_QUERY_DATA] = _hex(status_query)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new
-                )
-                return self.async_create_entry(title="", data={})
+                return self.async_create_entry(title="", data=opts)
 
         return self.async_show_form(
             step_id="switch_options",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_DATA_ON, default=data.get(CONF_DATA_ON, "")): str,
-                    vol.Required(CONF_DATA_OFF, default=data.get(CONF_DATA_OFF, "")): str,
+                    vol.Required(CONF_DATA_ON, default=current.get(CONF_DATA_ON, "")): str,
+                    vol.Required(CONF_DATA_OFF, default=current.get(CONF_DATA_OFF, "")): str,
                     vol.Optional(
                         CONF_WRITE_WITH_RESPONSE,
-                        default=data.get(CONF_WRITE_WITH_RESPONSE, False),
+                        default=current.get(CONF_WRITE_WITH_RESPONSE, False),
                     ): bool,
                     vol.Optional(
                         CONF_KEEP_ALIVE,
-                        default=data.get(CONF_KEEP_ALIVE, False),
+                        default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                     vol.Optional(
-                        CONF_NOTIFY_UUID, default=data.get(CONF_NOTIFY_UUID, "")
+                        CONF_NOTIFY_UUID, default=current.get(CONF_NOTIFY_UUID, "")
                     ): str,
                     vol.Optional(
                         CONF_NOTIFY_ON_PATTERN,
-                        default=data.get(CONF_NOTIFY_ON_PATTERN, ""),
+                        default=current.get(CONF_NOTIFY_ON_PATTERN, ""),
                     ): str,
                     vol.Optional(
                         CONF_NOTIFY_OFF_PATTERN,
-                        default=data.get(CONF_NOTIFY_OFF_PATTERN, ""),
+                        default=current.get(CONF_NOTIFY_OFF_PATTERN, ""),
                     ): str,
                     vol.Optional(
                         CONF_STATUS_QUERY_DATA,
-                        default=data.get(CONF_STATUS_QUERY_DATA, ""),
+                        default=current.get(CONF_STATUS_QUERY_DATA, ""),
                     ): str,
                 }
             ),
@@ -433,38 +423,35 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self.config_entry.data
+        current = {**self.config_entry.data, **self.config_entry.options}
 
         if user_input is not None:
             try:
-                new = {**data}
-                new[CONF_DATA_PRESS] = _hex(user_input[CONF_DATA_PRESS])
-                new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
+                opts = {}
+                opts[CONF_DATA_PRESS] = _hex(user_input[CONF_DATA_PRESS])
+                opts[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
-                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new
-                )
-                return self.async_create_entry(title="", data={})
+                return self.async_create_entry(title="", data=opts)
 
         return self.async_show_form(
             step_id="button_options",
             data_schema=vol.Schema(
                 {
                     vol.Required(
-                        CONF_DATA_PRESS, default=data.get(CONF_DATA_PRESS, "")
+                        CONF_DATA_PRESS, default=current.get(CONF_DATA_PRESS, "")
                     ): str,
                     vol.Optional(
                         CONF_WRITE_WITH_RESPONSE,
-                        default=data.get(CONF_WRITE_WITH_RESPONSE, False),
+                        default=current.get(CONF_WRITE_WITH_RESPONSE, False),
                     ): bool,
                     vol.Optional(
                         CONF_KEEP_ALIVE,
-                        default=data.get(CONF_KEEP_ALIVE, False),
+                        default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                 }
             ),
@@ -475,26 +462,23 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self.config_entry.data
+        current = {**self.config_entry.data, **self.config_entry.options}
 
         if user_input is not None:
             try:
                 options = _parse_select_options(user_input[CONF_OPTIONS])
-                new = {**data}
-                new[CONF_OPTIONS] = options
-                new[CONF_WRITE_WITH_RESPONSE] = user_input.get(
+                opts = {}
+                opts[CONF_OPTIONS] = options
+                opts[CONF_WRITE_WITH_RESPONSE] = user_input.get(
                     CONF_WRITE_WITH_RESPONSE, False
                 )
-                new[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new
-                )
-                return self.async_create_entry(title="", data={})
+                return self.async_create_entry(title="", data=opts)
 
-        current_options = data.get(CONF_OPTIONS, [])
+        current_options = current.get(CONF_OPTIONS, [])
         current_text = "\n".join(
             f"{opt['label']}={opt['data']}" for opt in current_options
         )
@@ -506,11 +490,11 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     vol.Required(CONF_OPTIONS, default=current_text): str,
                     vol.Optional(
                         CONF_WRITE_WITH_RESPONSE,
-                        default=data.get(CONF_WRITE_WITH_RESPONSE, False),
+                        default=current.get(CONF_WRITE_WITH_RESPONSE, False),
                     ): bool,
                     vol.Optional(
                         CONF_KEEP_ALIVE,
-                        default=data.get(CONF_KEEP_ALIVE, False),
+                        default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                 }
             ),

@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -27,8 +26,9 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """버튼 엔티티 셋업."""
-    manager: BLEDeviceManager = hass.data[DOMAIN][entry.entry_id]["manager"]
-    async_add_entities([BLEControllerButton(entry, manager)])
+    entry_data = hass.data[DOMAIN][entry.entry_id]
+    manager: BLEDeviceManager = entry_data["manager"]
+    async_add_entities([BLEControllerButton(entry_data["data"], manager)])
 
 
 class BLEControllerButton(ButtonEntity):
@@ -36,9 +36,9 @@ class BLEControllerButton(ButtonEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, entry: ConfigEntry, manager: BLEDeviceManager) -> None:
+    def __init__(self, data: dict, manager: BLEDeviceManager) -> None:
         self._manager = manager
-        self._data = entry.data
+        self._data = data
         self._mac: str = self._data[CONF_ADDRESS]
         self._name: str = self._data.get(CONF_NAME, f"BLE Button {self._mac}")
         self._char_uuid: str = self._data[CONF_CHAR_UUID]

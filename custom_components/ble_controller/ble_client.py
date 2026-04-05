@@ -40,11 +40,13 @@ class BLEDeviceManager:
     """
 
     def __init__(
-        self, hass: HomeAssistant, mac: str, *, keep_alive: bool = False
+        self, hass: HomeAssistant, mac: str, *,
+        keep_alive: bool = False, keepalive_interval: int = 10,
     ) -> None:
         self._hass = hass
         self._mac = mac
         self._keep_alive = keep_alive
+        self._keepalive_interval = keepalive_interval
         self._client: BleakClientWithServiceCache | None = None
         self._connect_lock = asyncio.Lock()
         self._operation_lock = asyncio.Lock()
@@ -257,7 +259,7 @@ class BLEDeviceManager:
             if await self._ensure_connected():
                 await self._fire_on_connect()
             while True:
-                await asyncio.sleep(KEEPALIVE_INTERVAL)
+                await asyncio.sleep(self._keepalive_interval)
                 if self._client is None or not self._client.is_connected:
                     _LOGGER.info("[BLE %s] Keepalive: 연결 끊김 감지 — 재연결", self._mac)
                     if await self._ensure_connected():

@@ -32,7 +32,8 @@
           "data_on": "ON data (hex)",
           "data_off": "OFF data (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)"
         },
         "data_description": {
           "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
@@ -40,7 +41,8 @@
           "data_on": "Hex bytes sent to the device when switching ON (e.g. 0aa5010101)",
           "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure. Must be unchecked if nRF Connect shows only 'Write Without Response' (0x04)",
-          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)"
         }
       },
       "button": {
@@ -51,14 +53,16 @@
           "char_uuid": "Write Characteristic UUID",
           "data_press": "Command data (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)"
         },
         "data_description": {
           "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
           "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
           "data_press": "Hex bytes sent to the device when button is pressed",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
-          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)"
         }
       },
       "select": {
@@ -69,14 +73,16 @@
           "char_uuid": "Write Characteristic UUID",
           "options": "Options (label=hex, one per line)",
           "write_with_response": "Write With Response",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)"
         },
         "data_description": {
           "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
           "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
           "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
-          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)"
         }
       },
       "notify": {
@@ -111,6 +117,7 @@
           "data_off": "OFF data (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON state response pattern (hex)",
           "notify_off_pattern": "OFF state response pattern (hex)",
@@ -121,6 +128,7 @@
           "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)",
           "notify_uuid": "Characteristic UUID with Notify property that the device uses to push state changes",
           "notify_on_pattern": "Hex pattern in Notify responses when device is ON. If contained in response, device is considered ON (e.g. 0101)",
           "notify_off_pattern": "Hex pattern in Notify responses when device is OFF. If contained in response, device is considered OFF (e.g. 0100)",
@@ -132,12 +140,14 @@
         "data": {
           "data_press": "Command data (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)"
         },
         "data_description": {
           "data_press": "Hex bytes sent to the device when button is pressed",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
-          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)"
         }
       },
       "select_options": {
@@ -145,12 +155,14 @@
         "data": {
           "options": "Options (label=hex, one per line)",
           "write_with_response": "Write With Response",
-          "keep_alive": "Keep Alive (background auto-connect)"
+          "keep_alive": "Keep Alive (background auto-connect)",
+          "keepalive_interval": "Keepalive Interval (seconds)"
         },
         "data_description": {
           "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
           "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
-          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
+          "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
+          "keepalive_interval": "When Keep Alive is enabled, sends a status query at this interval (seconds) to keep the connection alive. Reduce if the connection drops frequently (default: 10s)"
         }
       }
     }

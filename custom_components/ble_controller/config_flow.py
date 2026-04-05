@@ -22,6 +22,7 @@ from .const import (
     CONF_DATA_PRESS,
     CONF_ENTITY_TYPE,
     CONF_KEEP_ALIVE,
+    CONF_KEEPALIVE_INTERVAL,
     CONF_STATUS_QUERY_DATA,
     CONF_NOTIFY_OFF_PATTERN,
     CONF_NOTIFY_ON_PATTERN,
@@ -29,6 +30,7 @@ from .const import (
     CONF_OPTIONS,
     CONF_SERVICE_UUID,
     CONF_WRITE_WITH_RESPONSE,
+    DEFAULT_KEEPALIVE_INTERVAL,
     DOMAIN,
     ENTITY_TYPE_BUTTON,
     ENTITY_TYPE_SELECT,
@@ -175,6 +177,9 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_WRITE_WITH_RESPONSE, False
                     ),
                     CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
+                    CONF_KEEPALIVE_INTERVAL: user_input.get(
+                        CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                    ),
                 }
                 return await self.async_step_notify()
 
@@ -188,6 +193,10 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_DATA_OFF): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
                     vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
+                    vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=DEFAULT_KEEPALIVE_INTERVAL,
+                    ): int,
                 }
             ),
             errors=errors,
@@ -221,6 +230,9 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                             CONF_WRITE_WITH_RESPONSE, False
                         ),
                         CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
+                        CONF_KEEPALIVE_INTERVAL: user_input.get(
+                            CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                        ),
                     },
                 )
 
@@ -233,6 +245,10 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_DATA_PRESS): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
                     vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
+                    vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=DEFAULT_KEEPALIVE_INTERVAL,
+                    ): int,
                 }
             ),
             errors=errors,
@@ -266,6 +282,9 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                             CONF_WRITE_WITH_RESPONSE, False
                         ),
                         CONF_KEEP_ALIVE: user_input.get(CONF_KEEP_ALIVE, False),
+                        CONF_KEEPALIVE_INTERVAL: user_input.get(
+                            CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                        ),
                     },
                 )
 
@@ -278,6 +297,10 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_OPTIONS): str,
                     vol.Optional(CONF_WRITE_WITH_RESPONSE, default=False): bool,
                     vol.Optional(CONF_KEEP_ALIVE, default=False): bool,
+                    vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=DEFAULT_KEEPALIVE_INTERVAL,
+                    ): int,
                 }
             ),
             errors=errors,
@@ -377,6 +400,9 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     CONF_WRITE_WITH_RESPONSE, False
                 )
                 opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEPALIVE_INTERVAL] = user_input.get(
+                    CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                )
                 notify_uuid = user_input.get(CONF_NOTIFY_UUID, "").strip()
                 on_p = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
                 off_p = user_input.get(CONF_NOTIFY_OFF_PATTERN, "").strip()
@@ -412,6 +438,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
                     vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=current.get(CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL),
+                    ): int,
+                    vol.Optional(
                         CONF_NOTIFY_UUID, default=current.get(CONF_NOTIFY_UUID, "")
                     ): str,
                     vol.Optional(
@@ -445,6 +475,9 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     CONF_WRITE_WITH_RESPONSE, False
                 )
                 opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEPALIVE_INTERVAL] = user_input.get(
+                    CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                )
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
@@ -465,6 +498,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         CONF_KEEP_ALIVE,
                         default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
+                    vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=current.get(CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL),
+                    ): int,
                 }
             ),
             errors=errors,
@@ -485,6 +522,9 @@ class BLEControllerOptionsFlow(OptionsFlow):
                     CONF_WRITE_WITH_RESPONSE, False
                 )
                 opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
+                opts[CONF_KEEPALIVE_INTERVAL] = user_input.get(
+                    CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL
+                )
             except vol.Invalid:
                 errors["base"] = "invalid_format"
             else:
@@ -508,6 +548,10 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         CONF_KEEP_ALIVE,
                         default=current.get(CONF_KEEP_ALIVE, False),
                     ): bool,
+                    vol.Optional(
+                        CONF_KEEPALIVE_INTERVAL,
+                        default=current.get(CONF_KEEPALIVE_INTERVAL, DEFAULT_KEEPALIVE_INTERVAL),
+                    ): int,
                 }
             ),
             errors=errors,

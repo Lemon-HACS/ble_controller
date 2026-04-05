@@ -32,7 +32,8 @@
           "data_on": "ON 데이터 (hex)",
           "data_off": "OFF 데이터 (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)"
         },
         "data_description": {
           "service_uuid": "디바이스의 BLE GATT 서비스 UUID. nRF Connect 앱에서 디바이스에 연결하면 서비스 목록에서 확인 가능",
@@ -40,7 +41,8 @@
           "data_on": "스위치 ON 시 디바이스에 보내는 hex 바이트 (예: 0aa5010101)",
           "data_off": "스위치 OFF 시 디바이스에 보내는 hex 바이트 (예: 0aa5010100)",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요. nRF Connect에서 Write 속성이 'Write Without Response'(0x04)만 있으면 반드시 해제",
-          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제"
+          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)"
         }
       },
       "button": {
@@ -51,14 +53,16 @@
           "char_uuid": "Write Characteristic UUID",
           "data_press": "전송 데이터 (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)"
         },
         "data_description": {
           "service_uuid": "디바이스의 BLE GATT 서비스 UUID. nRF Connect 앱에서 디바이스에 연결하면 서비스 목록에서 확인 가능",
           "char_uuid": "명령을 보낼 Write 속성의 Characteristic UUID. nRF Connect에서 해당 서비스 펼치면 Write 속성이 있는 항목의 UUID",
           "data_press": "버튼을 누를 때 디바이스에 보내는 hex 바이트",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요",
-          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제"
+          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)"
         }
       },
       "select": {
@@ -69,14 +73,16 @@
           "char_uuid": "Write Characteristic UUID",
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
           "write_with_response": "Write With Response",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)"
         },
         "data_description": {
           "service_uuid": "디바이스의 BLE GATT 서비스 UUID. nRF Connect 앱에서 디바이스에 연결하면 서비스 목록에서 확인 가능",
           "char_uuid": "명령을 보낼 Write 속성의 Characteristic UUID. nRF Connect에서 해당 서비스 펼치면 Write 속성이 있는 항목의 UUID",
           "options": "한 줄에 하나씩 '표시이름=hex데이터' 형식. 예:\n모드1=0aa50101\n모드2=0aa50102",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요",
-          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제"
+          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)"
         }
       },
       "notify": {
@@ -111,6 +117,7 @@
           "data_off": "OFF 데이터 (hex)",
           "write_with_response": "Write With Response",
           "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)",
           "notify_uuid": "Notify Characteristic UUID",
           "notify_on_pattern": "ON 상태 응답 패턴 (hex)",
           "notify_off_pattern": "OFF 상태 응답 패턴 (hex)",
@@ -121,6 +128,7 @@
           "data_off": "스위치 OFF 시 디바이스에 보내는 hex 바이트 (예: 0aa5010100)",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요",
           "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)",
           "notify_uuid": "디바이스가 상태 변경 등을 알려줄 때 사용하는 Notify 속성의 Characteristic UUID",
           "notify_on_pattern": "디바이스가 ON 상태일 때 Notify 응답에 포함되는 hex 패턴. 이 패턴이 포함되면 ON으로 판단 (예: 0101)",
           "notify_off_pattern": "디바이스가 OFF 상태일 때 Notify 응답에 포함되는 hex 패턴. 이 패턴이 포함되면 OFF로 판단 (예: 0100)",
@@ -132,12 +140,14 @@
         "data": {
           "data_press": "전송 데이터 (hex)",
           "write_with_response": "Write With Response",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)"
         },
         "data_description": {
           "data_press": "버튼을 누를 때 디바이스에 보내는 hex 바이트",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요",
-          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제"
+          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)"
         }
       },
       "select_options": {
@@ -145,12 +155,14 @@
         "data": {
           "options": "옵션 목록 (라벨=hex, 줄바꿈 구분)",
           "write_with_response": "Write With Response",
-          "keep_alive": "연결 유지 (백그라운드 자동 연결)"
+          "keep_alive": "연결 유지 (백그라운드 자동 연결)",
+          "keepalive_interval": "Keepalive 주기 (초)"
         },
         "data_description": {
           "options": "한 줄에 하나씩 '표시이름=hex데이터' 형식. 예:\n모드1=0aa50101\n모드2=0aa50102",
           "write_with_response": "체크 시 BLE Write 후 디바이스의 수신 확인(ACK)을 기다림. 디바이스가 지원하지 않으면 명령이 멈출 수 있으므로, 잘 모르면 해제 상태로 두세요",
-          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제"
+          "keep_alive": "체크 시 HA가 실행되는 동안 60초마다 BLE 연결 상태를 확인하고, 끊어졌으면 자동 재연결. 끄면 명령 보낼 때만 연결하고 15초 후 자동 해제",
+          "keepalive_interval": "연결 유지 활성화 시 이 간격(초)마다 상태 조회를 보내 연결을 유지합니다. 연결이 자주 끊기면 값을 줄이세요 (기본: 10초)"
         }
       }
     }

@@ -100,7 +100,7 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return BLEControllerOptionsFlow(config_entry)
+        return BLEControllerOptionsFlow()
 
     async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
         """1단계: BLE 디바이스 선택."""
@@ -344,11 +344,8 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 class BLEControllerOptionsFlow(OptionsFlow):
     """BLE Controller 옵션 플로우."""
 
-    def __init__(self, config_entry) -> None:
-        self._config_entry = config_entry
-
     async def async_step_init(self, user_input: dict | None = None) -> FlowResult:
-        entity_type = self._config_entry.data.get(CONF_ENTITY_TYPE, ENTITY_TYPE_SWITCH)
+        entity_type = self.config_entry.data.get(CONF_ENTITY_TYPE, ENTITY_TYPE_SWITCH)
 
         if entity_type == ENTITY_TYPE_SWITCH:
             return await self.async_step_switch_options(user_input)
@@ -360,7 +357,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self._config_entry.data
+        data = self.config_entry.data
 
         if user_input is not None:
             try:
@@ -394,7 +391,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 errors["base"] = "invalid_format"
             else:
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry, data=new
+                    self.config_entry, data=new
                 )
                 return self.async_create_entry(title="", data={})
 
@@ -436,7 +433,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self._config_entry.data
+        data = self.config_entry.data
 
         if user_input is not None:
             try:
@@ -450,7 +447,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 errors["base"] = "invalid_format"
             else:
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry, data=new
+                    self.config_entry, data=new
                 )
                 return self.async_create_entry(title="", data={})
 
@@ -478,7 +475,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
         self, user_input: dict | None = None
     ) -> FlowResult:
         errors = {}
-        data = self._config_entry.data
+        data = self.config_entry.data
 
         if user_input is not None:
             try:
@@ -493,7 +490,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 errors["base"] = "invalid_format"
             else:
                 self.hass.config_entries.async_update_entry(
-                    self._config_entry, data=new
+                    self.config_entry, data=new
                 )
                 return self.async_create_entry(title="", data={})
 

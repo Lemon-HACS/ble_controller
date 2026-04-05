@@ -9,7 +9,7 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 
 > **다른 BLE 통합과의 충돌**: **Passive BLE Monitor**, **Xiaomi BLE** 등 BLE를 사용하는 다른 통합이 활성화되어 있으면 연결 실패가 빈번하게 발생할 수 있습니다. 이러한 통합들은 Bluetooth 어댑터를 상시 점유(스캔/연결)하여 이 통합의 GATT Write 연결을 방해합니다. 충돌이 의심되면 다른 BLE 통합을 비활성화하거나, 별도의 Bluetooth 어댑터를 사용하세요.
 
-> **BLE 프로토콜을 알아야 합니다**: 이 통합은 디바이스의 GATT Service UUID, Characteristic UUID, 전송할 hex 데이터를 직접 입력하는 방식입니다. 제조사 앱의 BLE 통신을 캡처하여 프로토콜을 먼저 파악해야 합니다. 방법은 [BLE 프로토콜 파악 방법](#ble-프로토콜-파악-방법)을 참고하세요.
+> **BLE 프로토콜을 알아야 합니다**: 이 통합은 디바이스의 GATT Service UUID, Characteristic UUID, 전송할 hex 데이터를 직접 입력하는 방식입니다. 이 용어들이 생소하다면 [BLE GATT 기초](./docs/gatt-basics.md)를 먼저 읽어보세요. 프로토콜 파악 방법은 [HCI 로그 캡처 가이드](./docs/hci-log-capture.md)를 참고하세요.
 
 > **BLE는 실패할 수 있습니다**: BLE 특성상 연결이 한 번에 성공하지 않을 수 있습니다. 이 통합은 `bleak-retry-connector` 기반 자동 재시도를 내장하고 있으므로 일시적인 연결 실패는 자동으로 복구됩니다. 다만 반복적으로 실패한다면 어댑터 거리, 다른 BLE 통합 충돌 등을 점검하세요.
 
@@ -67,11 +67,11 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 |------|------|------|
 | **Service UUID** | O | 디바이스의 GATT Service UUID |
 | **Write Characteristic UUID** | O | 데이터를 보낼 Characteristic UUID |
-| **Write With Response** | X | Write 후 디바이스의 응답을 기다릴지 여부 (기본: OFF). 디바이스가 Write Response를 요구하는 경우 ON으로 설정하세요. |
+| **Write With Response** | X | Write 후 디바이스의 응답을 기다릴지 여부 (기본: OFF). 자세한 내용은 [Write 방식 설명](./docs/write-modes.md) 참고. |
 
 ### 엔티티 타입별 추가 항목
 
-**스위치** — ON/OFF 각각에 보낼 hex 데이터를 입력합니다. 선택적으로 Notify Characteristic을 설정하면 디바이스가 보내는 응답을 통해 실제 ON/OFF 상태를 확인할 수 있습니다.
+**스위치** — ON/OFF 각각에 보낼 hex 데이터를 입력합니다. 선택적으로 Notify Characteristic을 설정하면 디바이스가 보내는 응답을 통해 실제 ON/OFF 상태를 확인할 수 있습니다. ([Notify 상세 설명](./docs/notify.md))
 
 **버튼** — 버튼을 누를 때 보낼 hex 데이터를 하나 입력합니다.
 
@@ -88,21 +88,26 @@ Home Assistant용 범용 BLE(Bluetooth Low Energy) 커스텀 통합 구성요소
 
 ## BLE 프로토콜 파악 방법
 
-이 통합은 BLE 프로토콜을 이미 알고 있는 디바이스에 사용합니다. 프로토콜을 모르는 경우:
+이 통합은 BLE 프로토콜을 이미 알고 있는 디바이스에 사용합니다. 프로토콜을 모르는 경우 Android의 HCI 스눕 로그를 캡처하여 분석할 수 있습니다.
 
-1. Android **개발자 옵션**에서 **블루투스 HCI 스눕 로그** 활성화
-2. 제조사 앱에서 디바이스를 몇 번 제어 (켜기/끄기, 모드 변경 등)
-3. **버그 리포트** 추출 후 `btsnoop_hci.log` 파일 확보
-4. Wireshark로 열어 ATT Write Command/Request에서 각 동작에 해당하는 hex 데이터 확인
-5. 이 통합에 해당 데이터 입력
-
-> **Tip**: Wireshark 분석이 어렵다면, 추출한 `btsnoop_hci.log`를 AI(ChatGPT, Claude 등)에게 전달하고 "이 BLE 로그에서 GATT Write 커맨드를 분석해줘"라고 요청하면 훨씬 쉽게 프로토콜을 파악할 수 있습니다.
+자세한 단계별 가이드는 [HCI 로그 캡처 가이드](./docs/hci-log-capture.md)를 참고하세요.
 
 ---
 
 ## 디바이스별 설정 예시
 
 구체적인 디바이스별 설정 예시와 프로토콜 분석 자료는 [examples/](./examples/) 폴더를 참고하세요.
+
+---
+
+## 참고 문서
+
+BLE 개념이 생소하다면 다음 문서를 참고하세요.
+
+- [BLE GATT 기초](./docs/gatt-basics.md) — Service, Characteristic, UUID란?
+- [Write 방식 (With/Without Response)](./docs/write-modes.md) — 두 Write 방식의 차이
+- [Notify와 상태 확인](./docs/notify.md) — Notify로 디바이스 상태를 확인하는 방법
+- [HCI 로그 캡처 가이드](./docs/hci-log-capture.md) — BLE 프로토콜을 파악하는 방법
 
 ---
 

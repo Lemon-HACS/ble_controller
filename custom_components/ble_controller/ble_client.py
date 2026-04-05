@@ -191,9 +191,12 @@ class BLEDeviceManager:
         notify_uuid: str,
         notify_on_pattern: bytes | None = None,
         notify_off_pattern: bytes | None = None,
-        notify_timeout: float = 5.0,
+        notify_timeout: float = 3.0,
     ) -> bool | None:
         """상태 조회 커맨드 전송 후 Notify로 ON/OFF 판별.
+
+        _operation_lock을 잡지 않음 — keepalive 콜백에서 호출되므로
+        사용자의 write 명령을 차단하지 않기 위함.
 
         Returns:
             True=ON, False=OFF, None=판별 불가.
@@ -205,46 +208,45 @@ class BLEDeviceManager:
             data.hex(),
             notify_uuid,
         )
-        async with self._operation_lock:
-            if not await self._ensure_connected():
-                _LOGGER.warning("[BLE %s] query_status: 연결 실패", self._mac)
-                return None
+        if self._client is None or not self._client.is_connected:
+            _LOGGER.warning("[BLE %s] query_status: 연결 안 됨", self._mac)
+            return None
 
-            detected_state: bool | None = None
+        detected_state: bool | None = None
 
-            try:
-                state_event = asyncio.Event()
+        try:
+            state_event = asyncio.Event()
 
-                def on_notify(_handle: int, notify_data: bytearray) -> None:
-                    nonlocal detected_state
-                    raw = bytes(notify_data)
-                    _LOGGER.debug(
-                        "[BLE %s] query_status notify: %s", self._mac, raw.hex()
-                    )
-                    if notify_on_pattern and notify_on_pattern in raw:
-                        detected_state = True
-                        state_event.set()
-                    elif notify_off_pattern and notify_off_pattern in raw:
-                        detected_state = False
-                        state_event.set()
-
-                await self._client.start_notify(notify_uuid, on_notify)
-                await self._client.write_gatt_char(char_uuid, data, response=False)
-                try:
-                    await asyncio.wait_for(
-                        state_event.wait(), timeout=notify_timeout
-                    )
-                except TimeoutError:
-                    _LOGGER.debug("[BLE %s] query_status: Notify 타임아웃", self._mac)
-                await self._client.stop_notify(notify_uuid)
-
-                _LOGGER.info(
-                    "[BLE %s] query_status 결과: %s", self._mac, detected_state
+            def on_notify(_handle: int, notify_data: bytearray) -> None:
+                nonlocal detected_state
+                raw = bytes(notify_data)
+                _LOGGER.debug(
+                    "[BLE %s] query_status notify: %s", self._mac, raw.hex()
                 )
-                return detected_state
-            except Exception:
-                _LOGGER.exception("[BLE %s] query_status 실패", self._mac)
-                return None
+                if notify_on_pattern and notify_on_pattern in raw:
+                    detected_state = True
+                    state_event.set()
+                elif notify_off_pattern and notify_off_pattern in raw:
+                    detected_state = False
+                    state_event.set()
+
+            await self._client.start_notify(notify_uuid, on_notify)
+            await self._client.write_gatt_char(char_uuid, data, response=False)
+            try:
+                await asyncio.wait_for(
+                    state_event.wait(), timeout=notify_timeout
+                )
+            except TimeoutError:
+                _LOGGER.debug("[BLE %s] query_status: Notify 타임아웃", self._mac)
+            await self._client.stop_notify(notify_uuid)
+
+            _LOGGER.info(
+                "[BLE %s] query_status 결과: %s", self._mac, detected_state
+            )
+            return detected_state
+        except Exception:
+            _LOGGER.exception("[BLE %s] query_status 실패", self._mac)
+            return None
 
     async def async_shutdown(self) -> None:
         """통합 언로드 시 정리."""
@@ -297,7 +299,7 @@ class BLEDeviceManager:
         notify_uuid: str | None = None,
         notify_on_pattern: bytes | None = None,
         notify_off_pattern: bytes | None = None,
-        notify_timeout: float = 5.0,
+        notify_timeout: float = 1.5,
     ) -> tuple[bool, bool | None]:
         """GATT write 후 Notify로 상태 확인.
 

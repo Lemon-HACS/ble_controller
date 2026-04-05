@@ -5,7 +5,8 @@
       "already_configured": "이 디바이스는 이미 설정되어 있습니다."
     },
     "error": {
-      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요."
+      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요.",
+      "notify_uuid_required": "Notify 패턴이나 상태 조회 커맨드를 사용하려면 Notify UUID를 입력해야 합니다."
     },
     "step": {
       "user": {
@@ -70,7 +71,8 @@
   },
   "options": {
     "error": {
-      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요."
+      "invalid_format": "입력 형식이 올바르지 않습니다. UUID 또는 hex 값을 확인해주세요.",
+      "notify_uuid_required": "Notify 패턴이나 상태 조회 커맨드를 사용하려면 Notify UUID를 입력해야 합니다."
     },
     "step": {
       "switch_options": {

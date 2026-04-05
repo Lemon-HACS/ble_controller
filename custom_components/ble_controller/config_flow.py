@@ -298,6 +298,15 @@ class BLEControllerConfigFlow(ConfigFlow, domain=DOMAIN):
 
             status_query = user_input.get(CONF_STATUS_QUERY_DATA, "").strip()
 
+            has_patterns = notify_on or notify_off or status_query
+            if has_patterns and not notify_uuid:
+                errors["base"] = "notify_uuid_required"
+                return self.async_show_form(
+                    step_id="notify",
+                    data_schema=self._notify_schema(),
+                    errors=errors,
+                )
+
             try:
                 if notify_uuid:
                     data[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
@@ -369,11 +378,14 @@ class BLEControllerOptionsFlow(OptionsFlow):
                 )
                 opts[CONF_KEEP_ALIVE] = user_input.get(CONF_KEEP_ALIVE, False)
                 notify_uuid = user_input.get(CONF_NOTIFY_UUID, "").strip()
+                on_p = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
+                off_p = user_input.get(CONF_NOTIFY_OFF_PATTERN, "").strip()
                 status_query = user_input.get(CONF_STATUS_QUERY_DATA, "").strip()
-                if notify_uuid:
+                has_patterns = on_p or off_p or status_query
+                if has_patterns and not notify_uuid:
+                    errors["base"] = "notify_uuid_required"
+                elif notify_uuid:
                     opts[CONF_NOTIFY_UUID] = _uuid(notify_uuid)
-                    on_p = user_input.get(CONF_NOTIFY_ON_PATTERN, "").strip()
-                    off_p = user_input.get(CONF_NOTIFY_OFF_PATTERN, "").strip()
                     if on_p:
                         opts[CONF_NOTIFY_ON_PATTERN] = _hex(on_p)
                     if off_p:
@@ -382,7 +394,7 @@ class BLEControllerOptionsFlow(OptionsFlow):
                         opts[CONF_STATUS_QUERY_DATA] = _hex(status_query)
             except vol.Invalid:
                 errors["base"] = "invalid_format"
-            else:
+            if not errors:
                 return self.async_create_entry(title="", data=opts)
 
         return self.async_show_form(

@@ -5,7 +5,8 @@
       "already_configured": "This device is already configured."
     },
     "error": {
-      "invalid_format": "Invalid input format. Please check UUID or hex values."
+      "invalid_format": "Invalid input format. Please check UUID or hex values.",
+      "notify_uuid_required": "Notify UUID is required when using notify patterns or status query command."
     },
     "step": {
       "user": {
@@ -70,7 +71,8 @@
   },
   "options": {
     "error": {
-      "invalid_format": "Invalid input format. Please check UUID or hex values."
+      "invalid_format": "Invalid input format. Please check UUID or hex values.",
+      "notify_uuid_required": "Notify UUID is required when using notify patterns or status query command."
     },
     "step": {
       "switch_options": {

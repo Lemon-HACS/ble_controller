@@ -2,7 +2,7 @@
 
 AliExpress에서 판매되는 카메라 연동 RGBIC TV 백라이트입니다. 카메라가 TV 화면 색상을 인식하여 실시간으로 백라이트 색상을 변경합니다. uLamp 앱(cn.com.uascent)으로 BLE 제어되며, 전원은 TV USB 포트에서 공급됩니다.
 
-![uLamp TV 백라이트 제품 이미지](./ulamp-tv-backlight.webp)
+![uLamp TV 백라이트 제품 이미지](../images/ulamp-tv-backlight.webp)
 
 **구매 링크**: [AliExpress](https://ko.aliexpress.com/item/1005008810337204.html)
 

@@ -29,6 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DISCONNECT_DELAY = 15.0  # 마지막 명령 후 자동 해제까지 대기 시간
 KEEPALIVE_INTERVAL = 30.0  # keepalive 체크 주기
+GATT_TIMEOUT = 3.0  # GATT 오퍼레이션(write 등) 최대 대기 시간
 MAX_ATTEMPTS = 3
 
 
@@ -305,12 +306,19 @@ class BLEDeviceManager:
         )
         try:
             self._clear_notify_buffer()
-            await self._client.write_gatt_char(char_uuid, data, response=False)
+            await asyncio.wait_for(
+                self._client.write_gatt_char(char_uuid, data, response=False),
+                timeout=GATT_TIMEOUT,
+            )
             state = await self._wait_for_notify_match(
                 notify_on_pattern, notify_off_pattern, notify_timeout
             )
             _LOGGER.info("[BLE %s] query_status 결과: %s", self._mac, state)
             return state
+        except TimeoutError:
+            _LOGGER.error("[BLE %s] query_status: GATT write 타임아웃 — 연결 끊김 의심", self._mac)
+            await self._disconnect()
+            return None
         except Exception:
             _LOGGER.exception("[BLE %s] query_status 실패", self._mac)
             return None
@@ -346,10 +354,17 @@ class BLEDeviceManager:
                 _LOGGER.error("[BLE %s] write: 연결 실패로 중단", self._mac)
                 return False
             try:
-                await self._client.write_gatt_char(char_uuid, data, response=response)
+                await asyncio.wait_for(
+                    self._client.write_gatt_char(char_uuid, data, response=response),
+                    timeout=GATT_TIMEOUT,
+                )
                 _LOGGER.info("[BLE %s] write: 성공", self._mac)
                 self._reset_disconnect_timer()
                 return True
+            except TimeoutError:
+                _LOGGER.error("[BLE %s] write: GATT write 타임아웃 — 강제 disconnect", self._mac)
+                await self._disconnect()
+                return False
             except Exception:
                 _LOGGER.exception("[BLE %s] GATT write 실패", self._mac)
                 await self._disconnect()
@@ -383,8 +398,11 @@ class BLEDeviceManager:
 
             try:
                 self._clear_notify_buffer()
-                await self._client.write_gatt_char(
-                    char_uuid, data, response=response
+                await asyncio.wait_for(
+                    self._client.write_gatt_char(
+                        char_uuid, data, response=response
+                    ),
+                    timeout=GATT_TIMEOUT,
                 )
 
                 detected_state: bool | None = None
@@ -397,6 +415,10 @@ class BLEDeviceManager:
                              self._mac, detected_state)
                 self._reset_disconnect_timer()
                 return True, detected_state
+            except TimeoutError:
+                _LOGGER.error("[BLE %s] write_and_notify: GATT write 타임아웃 — 강제 disconnect", self._mac)
+                await self._disconnect()
+                return False, None
             except Exception:
                 _LOGGER.exception("[BLE %s] GATT write 실패", self._mac)
                 await self._disconnect()

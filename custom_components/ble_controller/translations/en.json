@@ -39,7 +39,7 @@
           "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
           "data_on": "Hex bytes sent to the device when switching ON (e.g. 0aa5010101)",
           "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation (Write Without Response). Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure. Must be unchecked if nRF Connect shows only 'Write Without Response' (0x04)",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
@@ -57,7 +57,7 @@
           "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
           "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
           "data_press": "Hex bytes sent to the device when button is pressed",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
@@ -75,7 +75,7 @@
           "service_uuid": "BLE GATT service UUID of the device. Connect to the device in nRF Connect app to find it in the service list",
           "char_uuid": "Characteristic UUID with Write property to send commands to. Expand the service in nRF Connect to find the Write characteristic",
           "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
@@ -119,7 +119,7 @@
         "data_description": {
           "data_on": "Hex bytes sent to the device when switching ON (e.g. 0aa5010101)",
           "data_off": "Hex bytes sent to the device when switching OFF (e.g. 0aa5010100)",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity",
           "notify_uuid": "Characteristic UUID with Notify property that the device uses to push state changes",
           "notify_on_pattern": "Hex pattern in Notify responses when device is ON. If contained in response, device is considered ON (e.g. 0101)",
@@ -136,7 +136,7 @@
         },
         "data_description": {
           "data_press": "Hex bytes sent to the device when button is pressed",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       },
@@ -149,7 +149,7 @@
         },
         "data_description": {
           "options": "One per line in 'label=hexdata' format. Example:\nMode1=0aa50101\nMode2=0aa50102",
-          "write_with_response": "When checked, waits for device acknowledgement (ACK) after BLE Write. When unchecked, sends without confirmation. Uncheck if the device does not support ACK",
+          "write_with_response": "When checked, waits for device ACK after BLE Write. If the device does not support this, commands will hang. Leave unchecked if unsure",
           "keep_alive": "When checked, checks BLE connection every 60s while HA is running and auto-reconnects if disconnected. When unchecked, connects only when sending commands and auto-disconnects after 15s of inactivity"
         }
       }
